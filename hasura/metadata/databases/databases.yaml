@@ -1,0 +1,9 @@
+- name: my_cinema
+  kind: postgres
+  configuration:
+    connection_info:
+      database_url:
+        from_env: PG_DATABASE_URL
+      isolation_level: read-committed
+      use_prepared_statements: false
+  tables: "!include my_cinema/tables/tables.yaml"
