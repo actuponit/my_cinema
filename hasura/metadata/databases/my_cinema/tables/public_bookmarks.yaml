@@ -1,0 +1,44 @@
+table:
+  name: bookmarks
+  schema: public
+configuration:
+  column_config:
+    schedule:
+      custom_name: schedule
+  custom_column_names:
+    schedule: schedule
+  custom_root_fields: {}
+object_relationships:
+  - name: scheduleBySchedule
+    using:
+      foreign_key_constraint_on: schedule
+  - name: userByUser
+    using:
+      foreign_key_constraint_on: user
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user:
+          _eq: X-Hasura-User-Id
+      columns:
+        - schedule
+        - user
+    comment: ""
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - schedule
+        - user
+      filter:
+        user:
+          _eq: X-Hasura-User-Id
+    comment: ""
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user:
+          _eq: X-Hasura-User-Id
+    comment: ""

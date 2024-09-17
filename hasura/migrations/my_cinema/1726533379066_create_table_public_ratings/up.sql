@@ -1,0 +1,1 @@
+CREATE TABLE "public"."ratings" ("movie" integer NOT NULL, "user" integer NOT NULL, "rating" numeric NOT NULL, PRIMARY KEY ("movie","user") , FOREIGN KEY ("movie") REFERENCES "public"."movies"("id") ON UPDATE cascade ON DELETE cascade, CONSTRAINT "check_rating_between_1_and_5" CHECK (rating > 0 AND rating < 6));

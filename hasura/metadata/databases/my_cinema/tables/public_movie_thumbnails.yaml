@@ -1,0 +1,20 @@
+table:
+  name: movie_thumbnails
+  schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - featured
+        - image_url
+        - movie
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - featured
+        - image_url
+        - movie
+      filter: {}
+    comment: ""

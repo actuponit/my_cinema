@@ -1,0 +1,61 @@
+table:
+  name: ratings
+  schema: public
+object_relationships:
+  - name: movieByMovie
+    using:
+      foreign_key_constraint_on: movie
+  - name: userByUser
+    using:
+      foreign_key_constraint_on: user
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user:
+          _eq: X-Hasura-User-Id
+      columns:
+        - movie
+        - rating
+        - user
+    comment: ""
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - movie
+        - user
+        - rating
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - movie
+        - user
+        - rating
+      filter: {}
+      query_root_fields:
+        - select
+        - select_by_pk
+      subscription_root_fields:
+        - select
+        - select_by_pk
+    comment: ""
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - rating
+      filter:
+        user:
+          _eq: X-Hasura-User-Id
+      check: {}
+    comment: ""
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user:
+          _eq: X-Hasura-User-Id
+    comment: ""

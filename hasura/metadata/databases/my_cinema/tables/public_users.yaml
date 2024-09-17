@@ -1,3 +1,63 @@
 table:
   name: users
   schema: public
+array_relationships:
+  - name: bookmarks
+    using:
+      foreign_key_constraint_on:
+        column: user
+        table:
+          name: bookmarks
+          schema: public
+  - name: ratings
+    using:
+      foreign_key_constraint_on:
+        column: user
+        table:
+          name: ratings
+          schema: public
+insert_permissions:
+  - role: anonymous
+    permission:
+      check: {}
+      columns:
+        - email
+        - first_name
+        - last_name
+        - password
+      backend_only: true
+    comment: ""
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - email
+        - first_name
+        - last_name
+        - role
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      limit: 0
+    comment: ""
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - email
+        - first_name
+        - last_name
+        - password
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check: {}
+      backend_only: true
+    comment: ""
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+    comment: ""

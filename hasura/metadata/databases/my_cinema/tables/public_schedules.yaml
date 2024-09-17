@@ -1,0 +1,24 @@
+table:
+  name: schedules
+  schema: public
+object_relationships:
+  - name: movieByMovie
+    using:
+      foreign_key_constraint_on: movie
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - id
+        - movie
+        - start_time
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - id
+        - movie
+        - start_time
+      filter: {}
+    comment: ""

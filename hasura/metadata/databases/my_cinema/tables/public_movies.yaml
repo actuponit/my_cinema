@@ -1,0 +1,57 @@
+table:
+  name: movies
+  schema: public
+object_relationships:
+  - name: cast
+    using:
+      foreign_key_constraint_on: director
+  - name: genra
+    using:
+      foreign_key_constraint_on: genre
+array_relationships:
+  - name: movie_thumbnails
+    using:
+      foreign_key_constraint_on:
+        column: movie
+        table:
+          name: movie_thumbnails
+          schema: public
+  - name: ratings
+    using:
+      foreign_key_constraint_on:
+        column: movie
+        table:
+          name: ratings
+          schema: public
+  - name: schedules
+    using:
+      foreign_key_constraint_on:
+        column: movie
+        table:
+          name: schedules
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - published_at
+        - director
+        - duration_second
+        - id
+        - description
+        - genre
+        - title
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - published_at
+        - director
+        - duration_second
+        - id
+        - description
+        - genre
+        - title
+      filter: {}
+    comment: ""
