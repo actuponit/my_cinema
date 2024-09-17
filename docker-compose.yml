@@ -6,6 +6,17 @@ services:
       - db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: postgrespassword
+  go-server:
+    build:
+      context: ./server  # Root directory, where the Dockerfile is located
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - HASURA_GRAPHQL_ENDPOINT=http://hasura:8080/v1/graphql
+      - HASURA_GRAPHQL_ADMIN_SECRET=myadminsecretkey
+      - JWT_SECRET=thesupersupersecret
+      - PORT=3000
   graphql-engine:
     image: hasura/graphql-engine:v2.42.0
     ports:
