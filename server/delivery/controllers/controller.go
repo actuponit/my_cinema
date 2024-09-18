@@ -21,30 +21,30 @@ func (c *AuthController) Register(ctx *gin.Context) {
 	var newUser domain.User
 
 	if err := ctx.ShouldBindJSON(&newUser); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
 	user, err := c.userService.SignUp(newUser)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"user": user})
+	ctx.JSON(http.StatusOK, gin.H{"accessToken": user.AccessToken, "user": user.User})
 }
 
 func (c *AuthController) Login(ctx *gin.Context) {
 	var loginUser domain.LoginDto
 	log.Println("Login")
 	if err := ctx.ShouldBindJSON(&loginUser); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
 	user, err := c.userService.Login(loginUser.Email, loginUser.Password)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"user": user})
+	ctx.JSON(http.StatusOK, gin.H{"accessToken": user.AccessToken, "user": user.User})
 }
