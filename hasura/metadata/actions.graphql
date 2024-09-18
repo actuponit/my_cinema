@@ -1,4 +1,11 @@
 type Mutation {
+  login(
+    email: String!
+    password: String!
+  ): UserOutput!
+}
+
+type Mutation {
   signup(
     arg1: UserInput!
   ): UserOutput!

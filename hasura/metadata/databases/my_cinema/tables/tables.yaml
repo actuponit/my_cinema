@@ -1,5 +1,6 @@
 - "!include public_bookmarks.yaml"
 - "!include public_casts.yaml"
+- "!include public_crew.yaml"
 - "!include public_genra.yaml"
 - "!include public_movie_thumbnails.yaml"
 - "!include public_movies.yaml"

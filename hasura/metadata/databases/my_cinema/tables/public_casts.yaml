@@ -2,6 +2,13 @@ table:
   name: casts
   schema: public
 array_relationships:
+  - name: crews
+    using:
+      foreign_key_constraint_on:
+        column: cast_id
+        table:
+          name: crew
+          schema: public
   - name: movies
     using:
       foreign_key_constraint_on:
@@ -13,20 +20,18 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
-        - is_director
-        - is_staring
-        - id
         - first_name
+        - id
+        - is_director
         - last_name
       filter: {}
     comment: ""
   - role: user
     permission:
       columns:
-        - is_director
-        - is_staring
-        - id
         - first_name
+        - id
+        - is_director
         - last_name
       filter: {}
     comment: ""

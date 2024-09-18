@@ -4,6 +4,8 @@ import (
 	"cinema-server/domain"
 	"cinema-server/repositories"
 	"cinema-server/utils"
+	"errors"
+	"log"
 )
 
 type UserServiceInterface interface {
@@ -22,6 +24,11 @@ func NewUserService(repo repositories.UserRepositoryInterface) *UserService {
 }
 
 func (s *UserService) SignUp(user domain.User) (domain.UserDto, error) {
+	log.Println(user)
+	log.Println("herere", len(user.Password))
+	if len(user.Password) < 7 {
+		return domain.UserDto{}, errors.New("password must be at least 7 characters long")
+	}
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		return domain.UserDto{}, err
@@ -43,6 +50,7 @@ func (s *UserService) Login(email string, password string) (domain.UserDto, erro
 	if err != nil {
 		return domain.UserDto{}, err
 	}
+	log.Println(user.Password)
 	err = utils.IsPasswordCorrect(password, user.Password)
 	if err != nil {
 		return domain.UserDto{}, err

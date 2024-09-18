@@ -2,7 +2,11 @@ package repositories
 
 import (
 	"cinema-server/domain"
+	"context"
 	"errors"
+	"log"
+
+	"github.com/hasura/go-graphql-client"
 )
 
 type UserRepositoryInterface interface {
@@ -11,25 +15,52 @@ type UserRepositoryInterface interface {
 }
 
 type UserRepository struct {
-	users []domain.User
+	client *graphql.Client
 }
 
-func NewUserRepository(users []domain.User) *UserRepository {
+func NewUserRepository(client *graphql.Client) *UserRepository {
 	return &UserRepository{
-		users: users,
+		client: client,
 	}
 }
 
 func (r *UserRepository) CreateUser(user domain.User) (domain.User, error) {
-	r.users = append(r.users, user)
-	return user, nil
+	var m struct {
+		InsertUser domain.User `graphql:"insert_users_one(object: {email: $email, password: $password, first_name: $first_name, last_name: $last_name})"`
+	}
+
+	log.Println(user)
+	variables := map[string]interface{}{
+		"email":      user.Email,
+		"password":   user.Password,
+		"first_name": user.FirstName,
+		"last_name":  user.LastName,
+	}
+
+	err := r.client.Mutate(context.Background(), &m, variables)
+
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return m.InsertUser, nil
 }
 
 func (r *UserRepository) GetUser(email string) (domain.User, error) {
-	for _, user := range r.users {
-		if user.Email == email {
-			return user, nil
-		}
+	var q struct {
+		Users []domain.User `graphql:"users(where: {email: {_eq: $email}})"`
 	}
-	return domain.User{}, errors.New("user not found")
+	variables := map[string]interface{}{
+		"email": email,
+	}
+	err := r.client.Query(context.Background(), &q, variables)
+	if err != nil {
+		return domain.User{}, err
+	}
+	log.Println(q.Users)
+	if len(q.Users) == 0 {
+		return domain.User{}, errors.New("user not found")
+	}
+
+	return q.Users[0], nil
 }

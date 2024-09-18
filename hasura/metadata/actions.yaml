@@ -1,13 +1,54 @@
 actions:
+  - name: login
+    definition:
+      kind: synchronous
+      handler: '{{WEB_HOOK_URL}}/auth/login'
+      timeout: 3
+      request_transform:
+        body:
+          action: transform
+          template: |-
+            {
+              "email": {{$body.input.email}},
+              "password": {{$body.input.password}}
+            }
+        template_engine: Kriti
+        version: 2
+      response_transform:
+        body:
+          action: transform
+          template: |
+            {{$body}}
+        template_engine: Kriti
+        version: 2
+    permissions:
+      - role: anonymous
   - name: signup
     definition:
       kind: synchronous
       handler: '{{WEB_HOOK_URL}}/auth/register'
       request_transform:
+        body:
+          action: transform
+          template: |-
+            {
+              "first_name":{{$body.input.arg1.first_name}},
+              "last_name":{{$body.input.arg1.last_name}},
+              "email": {{$body.input.arg1.email}},
+              "password": {{$body.input.arg1.password}}
+            }
         method: POST
         query_params: {}
         template_engine: Kriti
         version: 2
+      response_transform:
+        body:
+          action: transform
+          template: '{{$body}}'
+        template_engine: Kriti
+        version: 2
+    permissions:
+      - role: anonymous
 custom_types:
   enums: []
   input_objects:

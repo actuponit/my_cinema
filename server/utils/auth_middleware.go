@@ -12,19 +12,19 @@ func AuthMiddleware(roles ...string) gin.HandlerFunc {
 
 		header := c.GetHeader("Authorization")
 		if header == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			c.Abort()
 			return
 		}
 		authSlice := strings.Split(header, " ")
 		if len(authSlice) != 2 || strings.ToLower(authSlice[0]) != "bearer" {
-			c.JSON(401, gin.H{"error": "Invalid authorization header"})
+			c.JSON(401, gin.H{"message": "Invalid authorization header"})
 			c.Abort()
 			return
 		}
 		claims, err := ValidateToken(authSlice[1])
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			c.Abort()
 			return
 		}
@@ -33,7 +33,7 @@ func AuthMiddleware(roles ...string) gin.HandlerFunc {
 		if ok {
 			c.Set("id", hasuraClaims["x-hasura-user-id"].(int))
 		} else {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			c.Abort()
 			return
 		}

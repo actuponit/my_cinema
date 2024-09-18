@@ -28,6 +28,15 @@ insert_permissions:
       backend_only: true
     comment: ""
 select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - email
+        - first_name
+        - last_name
+        - role
+      filter: {}
+    comment: ""
   - role: user
     permission:
       columns:
@@ -35,9 +44,7 @@ select_permissions:
         - first_name
         - last_name
         - role
-      filter:
-        id:
-          _eq: X-Hasura-User-Id
+      filter: {}
       limit: 0
     comment: ""
 update_permissions:
@@ -47,12 +54,10 @@ update_permissions:
         - email
         - first_name
         - last_name
-        - password
       filter:
         id:
           _eq: X-Hasura-User-Id
       check: {}
-      backend_only: true
     comment: ""
 delete_permissions:
   - role: user
