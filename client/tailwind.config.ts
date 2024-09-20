@@ -15,6 +15,7 @@ const config: Config = {
         blue: "#16A6Fc",
         yellow: "#f7c600",
         black: "#151717",
+        primary: "#151717",
         red: "#f54747",
       },
     },
