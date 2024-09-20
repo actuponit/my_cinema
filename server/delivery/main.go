@@ -43,8 +43,11 @@ func main() {
 	userService := services.NewUserService(userRepository)
 
 	authController := controllers.NewAuthController(userService)
+	fileController := controllers.NewFileController()
 
+	router.Static("/uploads", "./uploads")
 	routers.CreateAuthRoutes(router, authController)
+	routers.CreateFileRoutes(router, fileController)
 
 	if err := router.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatal(err)

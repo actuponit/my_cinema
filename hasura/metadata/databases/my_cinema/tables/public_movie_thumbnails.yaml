@@ -5,7 +5,6 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
-        - featured
         - image_url
         - movie
       filter: {}
@@ -13,8 +12,29 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - featured
         - image_url
         - movie
       filter: {}
     comment: ""
+event_triggers:
+  - name: delete_image
+    definition:
+      delete:
+        columns: '*'
+      enable_manual: true
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: '{{WEB_HOOK_URL}}/uploads'
+    request_transform:
+      body:
+        action: transform
+        template: |-
+          {
+            "url": {{$body.event.data.old.image_url}}
+          }
+      method: DELETE
+      query_params: {}
+      template_engine: Kriti
+      version: 2

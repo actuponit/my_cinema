@@ -38,16 +38,15 @@ func AuthMiddleware(roles ...string) gin.HandlerFunc {
 			return
 		}
 
-		if len(roles) > 0 {
-			userRole := hasuraClaims["x-hasura-default-role"].(string)
-			for _, role := range roles {
-				if role == userRole {
-					c.Next()
-					return
-				}
+		userRole := hasuraClaims["x-hasura-default-role"].(string)
+		for _, role := range roles {
+			if role == userRole {
+				c.Next()
+				return
 			}
 		}
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		c.Abort()
 	}
 }

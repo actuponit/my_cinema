@@ -2,12 +2,15 @@ table:
   name: movies
   schema: public
 object_relationships:
-  - name: cast
-    using:
-      foreign_key_constraint_on: director
   - name: genra
     using:
       foreign_key_constraint_on: genre
+  - name: movie_thumbnail
+    using:
+      foreign_key_constraint_on: featured_image
+  - name: my_director
+    using:
+      foreign_key_constraint_on: director
 array_relationships:
   - name: crews
     using:
