@@ -6,4 +6,5 @@
 - "!include public_movies.yaml"
 - "!include public_ratings.yaml"
 - "!include public_schedules.yaml"
+- "!include public_tickets.yaml"
 - "!include public_users.yaml"

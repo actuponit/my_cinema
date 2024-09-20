@@ -3,18 +3,11 @@ table:
   schema: public
 configuration:
   column_config:
-    schedule:
-      custom_name: schedule
+    movie_id:
+      custom_name: movie_id
   custom_column_names:
-    schedule: schedule
+    movie_id: movie_id
   custom_root_fields: {}
-object_relationships:
-  - name: scheduleBySchedule
-    using:
-      foreign_key_constraint_on: schedule
-  - name: userByUser
-    using:
-      foreign_key_constraint_on: user
 insert_permissions:
   - role: user
     permission:
@@ -22,14 +15,14 @@ insert_permissions:
         user:
           _eq: X-Hasura-User-Id
       columns:
-        - schedule
+        - movie_id
         - user
     comment: ""
 select_permissions:
   - role: user
     permission:
       columns:
-        - schedule
+        - movie_id
         - user
       filter:
         user:

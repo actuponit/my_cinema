@@ -5,6 +5,14 @@ object_relationships:
   - name: movieByMovie
     using:
       foreign_key_constraint_on: movie
+array_relationships:
+  - name: tickets
+    using:
+      foreign_key_constraint_on:
+        column: schedule_id
+        table:
+          name: tickets
+          schema: public
 select_permissions:
   - role: anonymous
     permission:

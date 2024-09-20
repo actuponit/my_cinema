@@ -16,6 +16,13 @@ array_relationships:
         table:
           name: ratings
           schema: public
+  - name: tickets
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: tickets
+          schema: public
 insert_permissions:
   - role: anonymous
     permission:
