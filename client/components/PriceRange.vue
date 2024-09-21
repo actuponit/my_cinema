@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-2">
+    <div class="space-y-2 max-w-fit">
         <p class="text-sm font-medium text-gray-300">Choose price range</p>
         <div class="flex items-center bg-gray-800 rounded-md">
             <input

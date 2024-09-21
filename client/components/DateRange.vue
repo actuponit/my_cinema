@@ -9,10 +9,8 @@
           :max-date="maxDate"
           :masks="masks"
           is-range
-          is-dark
           :color="blue"
           trim-weeks
-          class="date-range-picker"
         >
           <template v-slot="{ inputValue, inputEvents }">
             <div class="flex items-center bg-gray-800 rounded-md">
@@ -41,7 +39,6 @@
 <script setup>
   import { ref, computed } from 'vue';
   import { DatePicker } from 'v-calendar';
-  import 'v-calendar/dist/style.css';
   
   const range = ref({ start: null, end: null });
   
