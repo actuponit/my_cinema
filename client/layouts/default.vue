@@ -3,13 +3,13 @@
       <!-- Sidebar -->
       <div
         :class="[
-          'transition-all duration-300 ease-in-out h-1 bg-gray-800 border-r border-gray-700',
+          'transition-all duration-300 ease-in-out h-1 border-r border-gray-700',
           isOpen ? 'w-64' : 'w-20'
         ]"
       />
       <div
         :class="[
-          'transition-all duration-300 ease-in-out h-screen fixed bg-gray-800 border-r border-gray-700',
+          'transition-all duration-300 ease-in-out h-screen fixed bg-black-950 border-r border-gray-700',
           isOpen ? 'w-64' : 'w-20'
         ]"
       >
@@ -20,7 +20,7 @@
               isOpen ? 'text-xl' : 'text-sm'
             ]"
           >
-            {{ isOpen ? 'Dashboard' : '' }}
+            {{ isOpen ? 'CineTix' : '' }}
           </h1>
           <button
             @click="toggleSidebar"
@@ -106,8 +106,7 @@
   </template>
   
   <script setup>
-  import { VideoCameraIcon } from '@heroicons/vue/16/solid';
-import { MenuIcon, XIcon, ChevronDownIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon } from 'lucide-vue-next'
+import { MenuIcon, XIcon, ChevronDownIcon, VideoIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon } from 'lucide-vue-next'
   import { ref } from 'vue'
   const isOpen = ref(true)
   
@@ -118,7 +117,7 @@ import { MenuIcon, XIcon, ChevronDownIcon, HomeIcon, UserIcon, BookmarkIcon, Sta
     },
     {
       title: 'Movies',
-      icon: VideoCameraIcon,
+      icon: VideoIcon,
     },
     {
       title: 'BookMarks',

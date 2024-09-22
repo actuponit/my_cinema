@@ -38,7 +38,6 @@ const config: Config = {
           '900': '#22438d',
           '950': '#080f21',
         },
-        yellow: "#f7c600",
         red: {
           '50': '#fef2f2',
           '100': '#ffe1e1',
@@ -52,6 +51,9 @@ const config: Config = {
           '900': '#821a1a',
           '950': '#470808',
         },
+        "parimary-bg":"#080f21",
+        "secondary-bg":"#1f2937",
+        yellow: "#f7c600",
       
       },
     },

@@ -80,16 +80,19 @@
   
       <!-- Active Filters -->
       <div v-if="hasActiveFilters" class="mb-6">
-        <h3 class="text-xl font-semibold mb-2">Active Filters</h3>
+        <div class="flex justify-between">
+          <h3 class="text-xl font-semibold mb-2">Active Filters</h3>
+          <p @click="resetFilters" class="text-primary mb-4 cursor-pointer hover:underline underline-offset-3">Clear Filters</p>
+        </div>
         <div class="flex flex-wrap gap-2 items-center">
           <button
             v-for="filter in activeFilters"
             :key="filter.type + filter.value"
             @click="removeFilter({key: filter.type, value: filter.value})"
-            class="px-3 py-1 text-white rounded-full border-red border-2 text-sm font-medium flex items-center space-x-1 hover:bg-opacity-80 transition-colors duration-200"
+            class="px-3 py-1 text-white rounded-full border-red-500 border-2 text-sm font-medium flex items-center space-x-1 hover:bg-opacity-80 transition-colors duration-200"
           >
             <span>{{ filter.label }}</span>
-            <XIcon class="w-4 h-4 text-red"/>
+            <XIcon class="w-4 h-4 text-red-500"/>
           </button>
         </div>
       </div>

@@ -12,7 +12,6 @@ export function useSearchParams(queryMap: Map<string, string | Array<string>>) {
     updateQueryParams();
   };
   
-  
   const removeFilter = (filter: {key: string, value: string}) => {
 		if (!searchParams.value.has(filter.key)) return;
 		if (Array.isArray(searchParams.value.get(filter.key))) {

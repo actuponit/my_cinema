@@ -4,10 +4,10 @@
         class="absolute inset-0 bg-contain bg-center h-full"
         :style="{ backgroundImage: `url(${thumbnailUrl})` }"
       >
-        <div class="absolute inset-0 bg-black bg-opacity-40 transition-opacity duration-300 group-hover:bg-opacity-30"></div>
+        <div class="absolute inset-0 bg-black-950 bg-opacity-40 transition-opacity duration-300 group-hover:bg-opacity-30"></div>
       </div>
       <div class="relative flex h-full flex-col justify-end p-2">
-        <div class="space-y-2 relative px-1 group-hover:backdrop-blur-lg group-hover:bg-black group-hover:bg-opacity-40 -group-hover:px-1 ">
+        <div class="space-y-2 relative px-1 group-hover:backdrop-blur-lg group-hover:bg-black-950 group-hover:bg-opacity-40">
           <h3 class="text-2xl font-bold text-white px-3">{{ title }}</h3>
           <div class="flex items-center justify-between space-x-2 text-sm text-gray-200">
             <span class="flex items-center">
