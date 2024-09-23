@@ -99,14 +99,15 @@
           </div>
         </nav>
       </div>
-  
+      <UModals />
+      <UNotifications />
       <!-- Main Content -->
       <slot />
     </div>
   </template>
   
   <script setup>
-import { MenuIcon, XIcon, ChevronDownIcon, VideoIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon } from 'lucide-vue-next'
+  import { MenuIcon, XIcon, ChevronDownIcon, VideoIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon } from 'lucide-vue-next'
   import { ref } from 'vue'
   const isOpen = ref(true)
   
