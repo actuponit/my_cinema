@@ -40,3 +40,15 @@ export type ReviewForm = {
     rating: number;
     comment: string;
 }
+
+export type Ticket = {
+    movieTitle: string;
+    hall: string;
+    thumbnail: string;
+    price: number;
+    amount: number;
+    id: string;
+    boughtAt: Date;
+    movieTime: Date;
+    isUpcoming: boolean;
+}
