@@ -25,15 +25,26 @@ export type Schedule = {
 export type Movie = {
     id: number;
     title: string;
-    images: string[];
+    thumbnail: string;
     rating: number;
-    description: string;
-    genre: string[];
     duration: string;
-    releaseDate: string;
-    castAndCrew: Person[];
-    reviews: Review[];
-    schedules: Schedule[];
+    releaseDate: Date;
+    genre: string;
+    totalreviews: number;
+}
+
+export type MovieHome = Movie & {
+    price: number;
+    scheduleDate: Date;
+}
+
+export type MovieDetail = Movie & {
+    description: string;
+    isBookMarked?: boolean;
+    images?: string[];
+    castAndCrew?: Person[];
+    reviews?: Review[];
+    schedules?: Schedule[];
 }
 
 export type ReviewForm = {

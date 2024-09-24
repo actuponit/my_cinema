@@ -102,10 +102,7 @@
         <MovieCard
           v-for="movie in movies"
           :key="movie.id"
-          :title="movie.title"
-          :date="movie.date"
-          :category="movie.category"
-          :thumbnailUrl="movie.thumbnailUrl"
+          :movie="movie"
         />
       </div>
       <div v-else class="text-center text-2xl text-gray-400 py-12">
@@ -142,13 +139,13 @@
   <script setup lang="ts">
   import { XIcon } from 'lucide-vue-next';
 	import { ref, computed, } from 'vue';
+import type { Movie } from '~/types';
 	
-	const movies = [
-		{ id: 1, year:2024, title: "Inception", date: "2023-07-15", category: "Sci-Fi", thumbnailUrl: "/placeholder.webp" },
-		{ id: 2, year:2024, title: "The Shawshank Redemption", date: "2023-08-01", category: "Drama", thumbnailUrl: "/placeholder.webp" },
-		{ id: 3, year:2024, title: "The Dark Knight", date: "2023-08-15", category: "Action", thumbnailUrl: "/placeholder.webp" },
-		{ id: 4, year:2024, title: "The Dark Knight", date: "2023-08-15", category: "Action", thumbnailUrl: "/placeholder.webp" },
-	];
+	const movies: Movie[] = [
+        { id: 1, title: "Inception", releaseDate: new Date("2023-07-15"), genre: "Sci-Fi", thumbnail: "/placeholder.webp", duration: "2h 28m",rating: 4, totalreviews: 50 },
+        { id: 2, title: "The Shawshank Redemption", releaseDate: new Date("2023-08-01"), genre: "Drama", thumbnail: "/placeholder.webp", duration: "2h 22m", rating: 5, totalreviews: 100 },
+        { id: 3, title: "The Dark Knight", releaseDate: new Date("2023-08-15"), genre: "Action", thumbnail: "/placeholder.webp", duration: "2h 32m", rating: 2, totalreviews: 28 },
+    ]
 
   const currentPage = ref(1);
   const queryMap = new Map();

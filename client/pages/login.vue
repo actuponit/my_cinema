@@ -1,5 +1,15 @@
 <template>
     <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-primary-900 to-black-950">
+      <div class="fixed right-2 top-2">
+        <UButton
+          color="gray"
+          variant="ghost"
+          size="lg"
+          to="/"
+        >
+          Back To Home
+        </UButton>
+      </div>
       <div class="bg-white bg-opacity-10 p-8 rounded-xl shadow-2xl backdrop-blur-md w-full max-w-md">
         <h2 class="text-3xl font-bold text-center text-white mb-8">Sign In to CineTix</h2>
         <UForm :state="values" @submit="onSubmit">

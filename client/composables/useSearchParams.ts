@@ -1,9 +1,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, type RouteLocation } from 'vue-router'
 export function useSearchParams(queryMap: Map<string, string | Array<string>>) {
   const router = useRouter();
-  const route = useRoute();
-  
+	const route = useRoute();
   const searchParams = ref(queryMap);
   
   const updateFilters = () => {
@@ -66,12 +65,12 @@ export function useSearchParams(queryMap: Map<string, string | Array<string>>) {
 				return;
 			}
 			if (Array.isArray(value)) {
-				console.log("herere", value, key);
 				let qstring = route.query[key] as string;
+				searchParams.value.set(key, []);
 				if (qstring === undefined) return;
 				searchParams.value.set(key, (qstring.split(',') || []) as string[]);
 			} else {
-				searchParams.value.set(key, (route.query[key] || '') as string[]);
+				searchParams.value.set(key, (route.query[key] || '') as string);
 			}
 		});
   };
@@ -85,7 +84,9 @@ export function useSearchParams(queryMap: Map<string, string | Array<string>>) {
     initializeFromQueryParams();
   });
   
-  watch(route, () => {
+  watch(() => route.query, () => {
+	console.log("watching  ",route.query);
+
     initializeFromQueryParams();
   }, { deep: true });
 

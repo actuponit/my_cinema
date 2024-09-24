@@ -34,21 +34,21 @@
         <nav class="mt-6 flex flex-col justify-between h-[calc(100%-6.5rem)]">
           <div>
             <div v-for="(section, index) in mainSections" :key="index" class="mb-4">
-              <button
+              <NuxtLink :to="section.link"
                 :class="['flex items-center w-full px-4 py-2 text-left text-gray-400 hover:bg-gray-700 hover:text-gray-100 focus:outline-none', isOpen?'justify-between':'justify-center']"
               >
                 <div class="flex items-center">
                   <component :is="section.icon" class="w-5 h-5 mr-3" />
                   <span v-if="isOpen" class="text-sm font-medium">{{ section.title }}</span>
                 </div>
-              </button>
+              </NuxtLink>
             </div>
           </div>
   
           <div class="mt-auto">
             <div v-for="(section, index) in userSections" :key="index" class="mb-4">
               <button
-                @click="toggleSection(index, 'user')"
+                @click="toggleSection(index,)"
                 :class="['flex items-center w-full px-4 py-2 text-left text-gray-400 hover:bg-gray-700 hover:text-gray-100 focus:outline-none', isOpen?'justify-between':'justify-center']"
               >
                 <div class="flex items-center">
@@ -106,8 +106,8 @@
     </div>
   </template>
   
-  <script setup>
-  import { MenuIcon, XIcon, ChevronDownIcon, VideoIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon } from 'lucide-vue-next'
+  <script setup lang="ts">
+  import { MenuIcon, XIcon, ChevronDownIcon, VideoIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon, TicketIcon } from 'lucide-vue-next'
   import { ref } from 'vue'
   const isOpen = ref(true)
   
@@ -115,18 +115,27 @@
     {
       title: 'Home',
       icon: HomeIcon,
+      link: '/'
     },
     {
       title: 'Movies',
       icon: VideoIcon,
+      link: '/movies'
     },
     {
       title: 'BookMarks',
       icon: BookmarkIcon,
+      link: '/bookmarks'
     },
     {
-      title: 'Ratings',
+      title: 'Reviews',
       icon: StarIcon,
+      link: '/reviews'
+    },
+    {
+      title: 'Tickets',
+      icon: TicketIcon,
+      link: '/tickets'
     }
   ])
   
@@ -143,7 +152,7 @@
     isOpen.value = !isOpen.value
   }
   
-  const toggleSection = (index) => {
+  const toggleSection = (index: number) => {
     userSections.value[index].isOpen = !userSections.value[index].isOpen
   }
   </script>
