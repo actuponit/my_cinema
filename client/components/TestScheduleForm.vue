@@ -5,9 +5,14 @@
           <UFormGroup label="Schedule Date and time" :name="`date-${index}`" :error="displayError('date', index)">
             <VueDatePicker v-model="schedule.value.date" :is24="false" :min-date="new Date()" dark/>
           </UFormGroup>
-          <UFormGroup label="Cinema Hall" :name="`hall-${index}`" :error="displayError('hall', index)">
-            <USelectMenu :name="`hall-${index}`" :id="`hall-${index}`" v-model="schedule.value.hall" :options="cinemaHalls" />
-          </UFormGroup>
+          <div class="flex gap-3 justify-evenly">
+            <UFormGroup label="Cinema Hall" :name="`hall-${index}`" :error="displayError('hall', index)">
+              <USelectMenu :name="`hall-${index}`" :id="`hall-${index}`" v-model="schedule.value.hall" :options="cinemaHalls" />
+            </UFormGroup>
+            <UFormGroup label="Format" :name="`format-${index}`" :error="displayError('format', index)">
+              <USelectMenu :name="`format-${index}`" :id="`format-${index}`" v-model="schedule.value.format" :options="cinemaFormats" />
+            </UFormGroup>
+          </div>
           <UFormGroup label="Price" :name="`price-${index}`" :error="displayError('price', index)">
             <UInput :name="`price-${index}`" :id="`price-${index}`" v-model="schedule.value.price" type="number" step="0.1" />
           </UFormGroup>
@@ -40,6 +45,7 @@
   });
 
   const cinemaHalls = ['Hall A', 'Hall B', 'Hall C', 'Hall D']
+  const cinemaFormats = ['3D', '4D', '2D', 'IMAX']
 
   const schema = yup.object({
     schedules: yup.array().of(
@@ -49,9 +55,10 @@
           .min(new Date(), 'Date cannot be in the past')
           .required('Date is required'),
         hall: yup.string().required('Cinema hall is required').oneOf(cinemaHalls, 'Invalid cinema hall'),
+        format: yup.string().required('Cinema format is required').oneOf(cinemaFormats, 'Invalid cinema hall'),
         price: yup.number()
         .typeError('Must be a number')
-        .required('Price is required').min(10, 'Price must be greater than 0')
+        .required('Price is required').min(10, 'Price must be greater than 10')
       })
     )
   });
@@ -59,13 +66,14 @@
   const { errors, meta } = useForm({
     validationSchema: schema,
     initialValues: {
-      schedules: [{ date: '', hall: '', price: null }]
+      schedules: [{ date: '', hall: '', price: null, format: '' }]
     }
   });
 
   interface Schedule {
     date: string;
     hall: string;
+    format: string;
     price: number;
   }
 
@@ -78,20 +86,26 @@
   }, { deep: true })
   
   const addSchedule = () => {
-    console.log('addSchedule')
-    push({ date: '', hall: '', price: 0 })
-    console.log("fields", fields.value)
+    let index = fields.value.length - 1
+    if (index < 0) {
+      push({ date: '', hall: '', price: 0, format: '' })
+      return
+    }
+    if (errors.value[`schedules[${index}].date`] || errors.value[`schedules[${index}].hall`] || errors.value[`schedules[${index}].price`] || errors.value[`schedules[${index}].format`]) {
+      return
+    }
+    push({ date: '', hall: '', price: 0, format: '' })
   }
-  
+
   const removeSchedule = (index: number) => {
     remove(index)
   }
+
   const displayError = (field: string, index: number) => {
-    console.log('displayError', meta.value)
     if (meta.value.dirty) {
       return errors.value[`schedules[${index}].${field}`] || ''
     }
     return ''
   } 
-    
+
 </script>

@@ -61,10 +61,10 @@
             <div class="col-span-2 bg-gray-800 p-4 text-lg mt-4 mb-2 font-bold border-b border-b-gray-50">
               Schedule
             </div>
-            <TestScheduleForm name="schedules" v-model="schedule" @update:model-value="schedule = $event" />
+            <TestScheduleForm name="schedules" v-model="schedules" @update:model-value="schedules = $event" />
           </div>
         </div>
-        <button type="submit" class="inline-flex justify-center py-2 px-4 border justify-self-end ml-auto border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <button type="submit" @click="onSubmit" class="inline-flex justify-center py-2 px-4 border justify-self-end ml-auto border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
           Save Movie
         </button>
       </UForm>
@@ -101,11 +101,6 @@
     director: yup.number().required('You must choose at least one director'),
     actors: yup.array(yup.number()).min(1).required('You must choose at least one actors'),
     description: yup.string().required('Description is required'),
-    schedules: yup.array(yup.object().shape({
-      hall: yup.string().required('Hall is required'),
-      price: yup.number().required('price is required').min(0),
-      scheduleDate: yup.date().required('Schedule date is required').min(new Date())
-    })),
     thumbnails: yup.mixed().required('You need to select at least one thumbnail').test('fileSize', 'File size is too large', (value: any) => {
       if (!value) return true
       if (Array.isArray(value) && value.every((file) => file.size < (1 << 20) * 10)) return true
@@ -131,7 +126,7 @@
   const [director, directorProps] = defineField('director', nuxtUiConfig);
   const [actors, actorsProps] = defineField('actors', nuxtUiConfig);
   const [thumbnails, thumbnailsProps] = defineField('thumbnails', nuxtUiConfig);
-  const [schedule, scheduleProps] = defineField('schedules', nuxtUiConfig);
+  const schedules = ref([])
 
   const updateDuration = (val: number) => {
     if (duration.value)
@@ -165,7 +160,8 @@
     return s
   });
   const onSubmit = handleSubmit((values) => {
-    console.log("submit: ", values)
+    console.log("schedules: ", schedules)
+    console.log("submit: ", values.thumbnails)
     // Here you would typically send the data to your backend
   })
 </script>
