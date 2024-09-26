@@ -13,7 +13,7 @@ export const formatDateShort = (date: Date | string) => {
 }
 
 export const formatTime = (date: Date | string) => {
-    return new Date(date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    return new Date(date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 export const formatYear = (date: Date | string) => {

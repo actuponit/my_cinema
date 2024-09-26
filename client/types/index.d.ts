@@ -14,6 +14,7 @@ export type Person = {
 }
 
 export type Schedule = {
+    movie?: string;
     id: number;
     date: string;
     time: string;
@@ -62,4 +63,17 @@ export type Ticket = {
     boughtAt: Date;
     movieTime: Date;
     isUpcoming: boolean;
+}
+export type MovieRole = {
+    id: number;
+    title: string;
+    year: number;
+}
+
+export type PersonDetail = {
+    name: string;
+    photoUrl: string;
+    role: string;
+    bio: string;
+    movies: MovieRole[];
 }

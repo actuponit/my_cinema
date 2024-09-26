@@ -90,8 +90,19 @@ export function useSearchParams(queryMap: Map<string, string | Array<string>>) {
     initializeFromQueryParams();
   }, { deep: true });
 
+  const hasActiveFilters = computed(() => {
+	for (const [key, value] of searchParams.value) {
+		if (key === 'page') continue;
+	if (value.length > 0) {
+	  return true;
+		}
+		}
+	return false;  
+	});
+
 	return {
 		searchParams,
+		hasActiveFilters,
 		setSearchParams,
 		removeFilter,
 		resetFilters,

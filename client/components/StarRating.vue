@@ -13,7 +13,7 @@
       >
         <!-- Unfilled star -->
         <svg
-          class="w-4 h-4 text-yellow transition-colors duration-200"
+          class="w-4 h-4 text-yellow-500 transition-colors duration-200"
           :class="{ 'text-primary': (hoverRating || rating) >= star }"
           fill="none"
           stroke="currentColor"
@@ -29,7 +29,7 @@
         </svg>
         <!-- Filled star -->
         <div
-          class="absolute top-0 left-0 overflow-hidden transition-all duration-200 text-yellow text-"
+          class="absolute top-0 left-0 overflow-hidden transition-all duration-200 text-yellow-500 text-"
           :style="{ width: `${getFillPercentage(star)}%` }"
         >
           <svg

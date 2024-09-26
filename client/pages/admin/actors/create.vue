@@ -13,11 +13,14 @@
             <UFormGroup label="Last Name" name="lastname" v-bind="lastnameProps" class="space-y-4">
               <UInput name="lastname" v-model="lastname" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" />
             </UFormGroup>
+            <UFormGroup label="Short Bio" name="bio" v-bind="bioProps" class="space-y-4">
+              <UTextarea name="bio" :rows="5" v-model="bio" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" />
+            </UFormGroup>
             <UFormGroup label="Photo" :error="photoProps.error" help="The image must be less than 5mb and an image format" >
               <UInput type="file" accept="image/*" name="photo" class="my-3" id="photo" @change="photo=$event"/>
             </UFormGroup>
 						<button type="submit" class="inline-flex col-span-1 ml-auto justify-center py-2 px-4 border justify-self-end border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-							Save Movie
+							Save Cast
 						</button>
 					</div>
 				</div>
@@ -55,6 +58,7 @@ const nuxtUiConfig = {
 const [firstname, firstnameProps] = defineField('firstname', nuxtUiConfig)
 const [lastname, lastnameProps] = defineField('lastname', nuxtUiConfig)
 const [photo, photoProps] = defineField('photo', nuxtUiConfig)
+const [bio, bioProps] = defineField('bio', nuxtUiConfig)
 const [isDirector, isDirectorProps] = defineField('isDierector', nuxtUiConfig)
 
 const onSubmit = handleSubmit((values) => {

@@ -1,7 +1,6 @@
 <template>
-  <div class="min-h-screen flex-1 bg-black-950">
-    <UContainer class="py-8">
-      <div class="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+  <div class="min-h-screen p-8 flex-1 max-w-full">
+      <div class="rounded-lg shadow-xl overflow-hidden shadow-black-50/20">
         <div class="md:flex">
           <!-- Image Carousel -->
           <div class="md:w-1/2">
@@ -54,7 +53,7 @@
         </div>
         
         <!-- Cast and Crew -->
-        <div class="p-6 border-t border-gray-700 overflow-x-scroll scrollbar-thin">
+        <div class="p-6 border-t border-gray-700 w-[calc(100vw-20rem)] overflow-x-scroll">
           <h2 class="text-2xl font-bold text-white mb-4">Cast and Crew</h2>
           <div class="flex gap-8 flex-nowrap">
             <div v-for="person in movie.castAndCrew" :key="person.id" class="text-center min-w-fit">
@@ -108,7 +107,6 @@
           </UTable>
         </div>
       </div>
-    </UContainer>
   </div>
 </template>
 
