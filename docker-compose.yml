@@ -15,7 +15,7 @@ services:
     environment:
       - HASURA_GRAPHQL_ENDPOINT=http://graphql-engine:8080/v1/graphql
       - HASURA_GRAPHQL_ADMIN_SECRET=myadminsecretkey
-      - JWT_SECRET=thesupersupersecret
+      - JWT_SECRET=oursupersecretsupersecurekey1234567890
       - PORT=3000
     volumes:
       - uploads:/usr/src/app/uploads

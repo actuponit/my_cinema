@@ -13,6 +13,6 @@ func CreateAuthRoutes(router *gin.Engine, controller *controllers.AuthController
 }
 
 func CreateFileRoutes(router *gin.Engine, controller *controllers.FileController) {
-	router.POST("uploads", utils.AuthMiddleware("admin"), utils.FileMiddleware, controller.UploadFiles)
+	router.POST("uploads", utils.AuthMiddleware("cinema"), utils.FileMiddleware, controller.UploadFiles)
 	router.DELETE("uploads", controller.DeleteFile)
 }

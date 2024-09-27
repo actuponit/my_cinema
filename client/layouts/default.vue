@@ -140,10 +140,9 @@
     }
   ])
 
-  const name = localStorage.getItem('name');
-  const email = localStorage.getItem('email');
-  
-  
+  const { user } = useUser();
+  const name = user.value?.first_name + " " + user.value?.last_name
+  const email = user.value?.email
   const items = (name && email) ? [
     {
       title: 'Log out',

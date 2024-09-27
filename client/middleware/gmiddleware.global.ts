@@ -1,10 +1,10 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
 	if (to.fullPath === '/logout') {
     const { onLogout } = useApollo();
+    const { clearUser } = useUser();
     onLogout();
-    localStorage.removeItem('name');
-    localStorage.removeItem('email');
-    localStorage.removeItem('role');
+    clearUser();
+    
     return navigateTo('/');
   }
 })
