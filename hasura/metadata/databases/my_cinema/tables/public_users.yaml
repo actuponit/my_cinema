@@ -23,17 +23,6 @@ array_relationships:
         table:
           name: tickets
           schema: public
-insert_permissions:
-  - role: anonymous
-    permission:
-      check: {}
-      columns:
-        - email
-        - first_name
-        - last_name
-        - password
-      backend_only: true
-    comment: ""
 select_permissions:
   - role: anonymous
     permission:
@@ -44,27 +33,56 @@ select_permissions:
         - role
       filter: {}
     comment: ""
+  - role: cinema
+    permission:
+      columns:
+        - email
+        - first_name
+        - id
+        - last_name
+        - role
+      filter: {}
+    comment: ""
   - role: user
     permission:
       columns:
         - email
         - first_name
+        - id
         - last_name
         - role
       filter: {}
       limit: 0
     comment: ""
 update_permissions:
+  - role: cinema
+    permission:
+      columns:
+        - email
+        - first_name
+        - id
+        - last_name
+        - role
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check:
+        id:
+          _eq: X-Hasura-User-Id
+    comment: ""
   - role: user
     permission:
       columns:
         - email
         - first_name
+        - id
         - last_name
       filter:
         id:
           _eq: X-Hasura-User-Id
-      check: {}
+      check:
+        id:
+          _eq: X-Hasura-User-Id
     comment: ""
 delete_permissions:
   - role: user

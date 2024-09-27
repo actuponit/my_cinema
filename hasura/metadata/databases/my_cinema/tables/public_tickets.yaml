@@ -8,13 +8,59 @@ object_relationships:
   - name: user
     using:
       foreign_key_constraint_on: user_id
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      columns:
+        - schedule_id
+        - user_id
+        - created_at
+        - updated_at
+    comment: ""
 select_permissions:
+  - role: cinema
+    permission:
+      columns:
+        - quantity
+        - schedule_id
+        - user_id
+        - created_at
+        - updated_at
+        - id
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - quantity
+        - schedule_id
+        - user_id
+        - created_at
+        - updated_at
+        - id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+    comment: ""
+update_permissions:
   - role: user
     permission:
       columns:
         - created_at
         - schedule_id
+        - updated_at
         - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null
+    comment: ""
+delete_permissions:
+  - role: user
+    permission:
       filter:
         user_id:
           _eq: X-Hasura-User-Id

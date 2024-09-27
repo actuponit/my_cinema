@@ -40,6 +40,22 @@ array_relationships:
         table:
           name: schedules
           schema: public
+insert_permissions:
+  - role: cinema
+    permission:
+      check: {}
+      columns:
+        - published_at
+        - director
+        - duration_second
+        - id
+        - average_rating
+        - total_rating
+        - description
+        - featured_image
+        - genre
+        - title
+    comment: ""
 select_permissions:
   - role: anonymous
     permission:
@@ -48,7 +64,25 @@ select_permissions:
         - director
         - duration_second
         - id
+        - average_rating
+        - total_rating
         - description
+        - featured_image
+        - genre
+        - title
+      filter: {}
+    comment: ""
+  - role: cinema
+    permission:
+      columns:
+        - published_at
+        - director
+        - duration_second
+        - id
+        - average_rating
+        - total_rating
+        - description
+        - featured_image
         - genre
         - title
       filter: {}
@@ -60,8 +94,33 @@ select_permissions:
         - director
         - duration_second
         - id
+        - average_rating
+        - total_rating
         - description
+        - featured_image
         - genre
         - title
+      filter: {}
+    comment: ""
+update_permissions:
+  - role: cinema
+    permission:
+      columns:
+        - published_at
+        - director
+        - duration_second
+        - id
+        - average_rating
+        - total_rating
+        - description
+        - featured_image
+        - genre
+        - title
+      filter: {}
+      check: {}
+    comment: ""
+delete_permissions:
+  - role: cinema
+    permission:
       filter: {}
     comment: ""

@@ -20,19 +20,18 @@
             <UInput v-model="password" :color="'blue'" type="password" />
           </UFormGroup>
           <div class="flex items-center justify-between">
-            <div class="flex items-center">
+            <!-- <div class="flex items-center">
               <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
               <label for="remember-me" class="ml-2 block text-sm text-gray-200">Remember me</label>
             </div>
             <div class="text-sm">
               <a href="#" class="font-medium text-primary-300 hover:text-primary-200">Forgot your password?</a>
-            </div>
+            </div> -->
           </div>
           <div>
-            <button type="submit"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 my-4">
+            <UButton type="submit" size="lg" class="w-full flex justify-center mt-6" :loading="loading">
               Sign In
-            </button>
+            </UButton>
           </div>
         </UForm>
         <p class="mt-6 text-center text-sm text-gray-300">
@@ -41,6 +40,7 @@
         </p>
       </div>
     </div>
+    <UNotifications />
   </template>
   
 <script setup lang="ts">
@@ -56,8 +56,29 @@
     validationSchema: schema,
   });
 
-  const onSubmit = handleSubmit((values) => {
-    console.log(values);
+  const { loading, executeLogin } = useLogin();
+  const toast = useToast();
+
+  const router = useRouter();
+  const onSubmit = handleSubmit(async (values) => {
+    // console.log(values);
+    try {
+      const user = await executeLogin(values.email, values.password);
+      if (user) {
+        localStorage.setItem('name', user.first_name + " " + user.last_name);
+        localStorage.setItem('email', user.email);
+        localStorage.setItem('role', user.role);
+      }
+      toast.add({
+        title: 'Login successful',
+        description: 'You have successfully logged in.',
+        color: 'green',
+      });
+      router.replace('/');
+    } catch (error) {
+      console.log(error);
+    }
+    
   });
 
   const nuxtUiConfig = {
@@ -71,5 +92,6 @@
 
   definePageMeta({
     layout: false,
+    middleware: ['auth'],
   });
 </script>

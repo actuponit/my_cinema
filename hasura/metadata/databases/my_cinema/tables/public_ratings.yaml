@@ -9,12 +9,24 @@ object_relationships:
     using:
       foreign_key_constraint_on: user
 insert_permissions:
+  - role: cinema
+    permission:
+      check:
+        user:
+          _eq: X-Hasura-User-Id
+      columns:
+        - movie
+        - user
+        - rating
+        - feedback
+    comment: ""
   - role: user
     permission:
       check:
         user:
           _eq: X-Hasura-User-Id
       columns:
+        - feedback
         - movie
         - rating
         - user
@@ -28,12 +40,22 @@ select_permissions:
         - rating
       filter: {}
     comment: ""
-  - role: user
+  - role: cinema
     permission:
       columns:
         - movie
         - user
         - rating
+        - feedback
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - feedback
+        - movie
+        - rating
+        - user
       filter: {}
       query_root_fields:
         - select
@@ -43,9 +65,24 @@ select_permissions:
         - select_by_pk
     comment: ""
 update_permissions:
+  - role: cinema
+    permission:
+      columns:
+        - movie
+        - user
+        - rating
+        - feedback
+      filter:
+        user:
+          _eq: X-Hasura-User-Id
+      check:
+        user:
+          _eq: X-Hasura-User-Id
+    comment: ""
   - role: user
     permission:
       columns:
+        - feedback
         - rating
       filter:
         user:
@@ -53,6 +90,12 @@ update_permissions:
       check: {}
     comment: ""
 delete_permissions:
+  - role: cinema
+    permission:
+      filter:
+        user:
+          _eq: X-Hasura-User-Id
+    comment: ""
   - role: user
     permission:
       filter:

@@ -13,12 +13,35 @@ array_relationships:
         table:
           name: tickets
           schema: public
+insert_permissions:
+  - role: cinema
+    permission:
+      check: {}
+      columns:
+        - id
+        - movie
+        - format
+        - hall
+        - start_time
+    comment: ""
 select_permissions:
   - role: anonymous
     permission:
       columns:
         - id
         - movie
+        - format
+        - hall
+        - start_time
+      filter: {}
+    comment: ""
+  - role: cinema
+    permission:
+      columns:
+        - id
+        - movie
+        - format
+        - hall
         - start_time
       filter: {}
     comment: ""
@@ -27,6 +50,25 @@ select_permissions:
       columns:
         - id
         - movie
+        - format
+        - hall
         - start_time
+      filter: {}
+    comment: ""
+update_permissions:
+  - role: cinema
+    permission:
+      columns:
+        - id
+        - movie
+        - format
+        - hall
+        - start_time
+      filter: {}
+      check: null
+    comment: ""
+delete_permissions:
+  - role: cinema
+    permission:
       filter: {}
     comment: ""

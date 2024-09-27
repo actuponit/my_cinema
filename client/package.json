@@ -20,5 +20,8 @@
     "vue": "latest",
     "vue-router": "latest",
     "yup": "^1.4.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/apollo": "^5.0.0-alpha.14"
   }
 }

@@ -16,22 +16,67 @@ array_relationships:
         table:
           name: movies
           schema: public
-select_permissions:
-  - role: anonymous
+insert_permissions:
+  - role: cinema
     permission:
+      check: {}
       columns:
+        - bio
         - first_name
         - id
         - is_director
         - last_name
+        - photo_url
+    comment: ""
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - bio
+        - first_name
+        - id
+        - is_director
+        - last_name
+        - photo_url
+      filter: {}
+    comment: ""
+  - role: cinema
+    permission:
+      columns:
+        - bio
+        - first_name
+        - id
+        - is_director
+        - last_name
+        - photo_url
       filter: {}
     comment: ""
   - role: user
     permission:
       columns:
+        - bio
         - first_name
         - id
         - is_director
         - last_name
+        - photo_url
+      filter: {}
+    comment: ""
+update_permissions:
+  - role: cinema
+    permission:
+      columns:
+        - bio
+        - first_name
+        - id
+        - is_director
+        - last_name
+        - photo_url
+      filter: {}
+      check: null
+    comment: ""
+delete_permissions:
+  - role: cinema
+    permission:
       filter: {}
     comment: ""

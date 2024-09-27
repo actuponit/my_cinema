@@ -5,7 +5,15 @@ export default defineNuxtConfig({
   css: ['@/assets/css/tailwind.css'],
   modules: [
     '@nuxt/ui',
+    '@nuxtjs/apollo'
   ],
+  apollo: {
+    clients: {
+      default: {
+        httpEndpoint: 'http://localhost:8080/v1/graphql',
+      }
+    },
+  },
   colorMode: {
     preference: 'system',
     fallback: 'dark',

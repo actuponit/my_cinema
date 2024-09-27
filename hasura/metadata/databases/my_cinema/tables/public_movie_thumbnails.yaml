@@ -1,6 +1,14 @@
 table:
   name: movie_thumbnails
   schema: public
+insert_permissions:
+  - role: cinema
+    permission:
+      check: {}
+      columns:
+        - movie
+        - image_url
+    comment: ""
 select_permissions:
   - role: anonymous
     permission:
@@ -9,11 +17,32 @@ select_permissions:
         - movie
       filter: {}
     comment: ""
+  - role: cinema
+    permission:
+      columns:
+        - movie
+        - image_url
+      filter: {}
+    comment: ""
   - role: user
     permission:
       columns:
         - image_url
         - movie
+      filter: {}
+    comment: ""
+update_permissions:
+  - role: cinema
+    permission:
+      columns:
+        - movie
+        - image_url
+      filter: {}
+      check: null
+    comment: ""
+delete_permissions:
+  - role: cinema
+    permission:
       filter: {}
     comment: ""
 event_triggers:
