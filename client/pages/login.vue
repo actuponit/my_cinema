@@ -59,15 +59,15 @@
   const { loading, executeLogin } = useLogin();
   const toast = useToast();
 
-  const { setUser } = useUser()
   const router = useRouter();
   const onSubmit = handleSubmit(async (values) => {
+    const { setUser } = useUser()
     // console.log(values);
     try {
       const user = await executeLogin(values.email, values.password);
-      if (user) {
-        setUser(user);
-      }
+      console.log(user);  
+      setUser(user);
+      
       toast.add({
         title: 'Login successful',
         description: 'You have successfully logged in.',

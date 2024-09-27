@@ -5,7 +5,7 @@
 				<div class="p-6">
 					<div class="grid gap-6">
 						<UFormGroup label="Is the preson a director" help="The default is an actor" name="isDirector">
-							<UToggle v-model="isDirector" />
+							<UToggle v-model="isDirector" size="2xl" class="mt-3" />
 						</UFormGroup>
             <UFormGroup label="First Name" name="firstname" v-bind="firstnameProps" class="space-y-4">
               <UInput name="firstname" v-model="firstname" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" />
@@ -61,11 +61,11 @@ const [photo, photoProps] = defineField('photo', nuxtUiConfig)
 const [bio, bioProps] = defineField('bio', nuxtUiConfig)
 const [isDirector, isDirectorProps] = defineField('isDierector', nuxtUiConfig)
 
-const { executeInsert, loading } = useCastInsert();
+const { executeInsert, loading } = ();
 
 const onSubmit = handleSubmit(async (values) => {
 	console.log(values)
-	const { data, error, status } = await useUploadImages([values.photo]);
+	const { data, error, status } = await useUpload([values.photo]);
 	console.log(data.value)
 	if (status.value === 'success') {
 		console.log("Photo uploaded successfully")
@@ -84,4 +84,5 @@ const onSubmit = handleSubmit(async (values) => {
 	}
 	// Here you would typically send the data to your backend
 })
+
 </script>

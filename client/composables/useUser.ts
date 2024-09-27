@@ -1,30 +1,32 @@
 import { ref, readonly } from 'vue'
-import { useCookie } from 'nuxt/app'
+import { useStorage } from '@vueuse/core'
 
 const user = ref<User | null>(null)
 
 export function useUser() {
-  const userCookie = useCookie('user', {
-    sameSite: 'strict'
+  const storedUser = useStorage('user', null, localStorage, {
+    serializer: {
+      read: (v) => JSON.parse(v),
+      write: (v) => JSON.stringify(v),
+    },
   })
 
-  if (userCookie.value && !user.value) {
-    try {
-      user.value = JSON.parse(userCookie.value)
-    } catch (e) {
-      console.error('Failed to parse user cookie:', e)
-      userCookie.value = null
-    }
+  if (storedUser.value && !user.value) {
+    user.value = storedUser.value
   }
 
   const setUser = (newUser: User) => {
     user.value = newUser
-    userCookie.value = JSON.stringify(newUser)
+    storedUser.value = newUser
   }
 
+  const { onLogout } = useApollo()
   const clearUser = () => {
+    onLogout();
     user.value = null
-    userCookie.value = null
+    console.log('clearing user', storedUser.value)
+    storedUser.value = null
+    console.log('clearing use after', storedUser.value)
   }
 
   return {

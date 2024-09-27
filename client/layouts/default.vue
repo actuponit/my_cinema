@@ -20,7 +20,7 @@
               isOpen ? 'text-xl' : 'text-sm'
             ]"
           >
-            {{ isOpen ? 'CineTix' : '' }}
+            {{ !isOpen ? '' : role === 'cinema' ? 'Admin': 'CineTix' }}
           </h1>
           <button
             @click="toggleSidebar"
@@ -35,6 +35,7 @@
           <div>
             <div v-for="(section, index) in mainSections" :key="index" class="mb-4">
               <NuxtLink :to="section.link"
+                @click="console.log"
                 :class="['flex items-center w-full px-4 py-2 text-left text-gray-400 hover:bg-gray-700 hover:text-gray-100 focus:outline-none', isOpen?'justify-between':'justify-center']"
               >
                 <div class="flex items-center">
@@ -46,43 +47,32 @@
           </div>
   
           <div class="mt-auto">
-            <div v-for="(section, index) in userSections" :key="index" class="mb-4">
+            <UPopover mode="hover" :popper="{offsetDistance: 0,placement: 'top-end'}"
+            >
               <button
-                @click="toggleSection(index,)"
                 :class="['flex items-center w-full px-4 py-2 text-left text-gray-400 hover:bg-gray-700 hover:text-gray-100 focus:outline-none', isOpen?'justify-between':'justify-center']"
               >
                 <div class="flex items-center">
-                  <component :is="section.icon" class="w-5 h-5 mr-3" />
-                  <span v-if="isOpen" class="text-sm font-medium">{{ section.title }}</span>
+                  <UserIcon class="w-5 h-5 mr-3" />
+                  <span v-if="isOpen" class="text-sm font-medium">Account</span>
                 </div>
-                <ChevronDownIcon
-                  v-if="isOpen"
-                  :class="[
-                    'w-4 h-4 transition-transform duration-200',
-                    section.isOpen ? 'transform rotate-180' : ''
-                  ]"
-                />
               </button>
-              <transition
-                enter-active-class="transition duration-100 ease-out"
-                enter-from-class="transform scale-95 opacity-0"
-                enter-to-class="transform scale-100 opacity-100"
-                leave-active-class="transition duration-75 ease-in"
-                leave-from-class="transform scale-100 opacity-100"
-                leave-to-class="transform scale-95 opacity-0"
-              >
-                <ul v-if="isOpen && section.isOpen" class="mt-2 space-y-2">
-                  <li v-for="(item, itemIndex) in section.items" :key="itemIndex">
-                    <a
-                      :href="item.link"
-                      class="block px-4 py-2 text-sm text-gray-400 hover:bg-gray-700 hover:text-gray-100"
-                    >
-                      {{ item.title }}
+              <template #panel>
+                <div class="mb-4">
+                  <ul class="mt-2 space-y-2">
+                    <li v-for="(item, itemIndex) in items" :key="itemIndex">
+                      <a
+                        @click="clearUserFunc(item.title)"
+                        :href="item.link"
+                        :class="['block py-2 text-sm text-gray-400 hover:bg-gray-700 hover:text-gray-100', isOpen?'px-20':'px-8']"
+                      >
+                        {{ (item as SectionItem).title }}
                     </a>
-                  </li>
-                </ul>
-              </transition>
-            </div>
+                    </li>
+                  </ul>
+                </div>
+              </template>
+            </UPopover>
   
             <!-- User Profile Section -->
 
@@ -108,7 +98,7 @@
   </template>
   
 <script setup lang="ts">
-  import { MenuIcon, XIcon, ChevronDownIcon, VideoIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon, TicketIcon } from 'lucide-vue-next'
+  import { MenuIcon, XIcon, ChevronDownIcon, VideoIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon, TicketIcon, UserPlus2Icon, VideotapeIcon, TimerIcon,  } from 'lucide-vue-next'
   import { ref } from 'vue'
   const isOpen = ref(true)
   
@@ -140,42 +130,84 @@
     }
   ])
 
-  const { user } = useUser();
-  const name = user.value?.first_name + " " + user.value?.last_name
-  const email = user.value?.email
-  const items = (name && email) ? [
-    {
-      title: 'Log out',
-      link: '/logout'
-    },
-    {
-      title: 'Profile',
-      link: '/profile'
-    }
-  ] : [
-    {
+  const name = ref<string>();
+  const email = ref<string>();
+  const role = ref<string>();
+
+  interface SectionItem {
+    title: string;
+    link: string;
+  }
+
+  interface UserSection {
+    title: string;
+    icon: any;
+    isOpen: boolean;
+    items: Ref<SectionItem[]> | undefined;
+  }
+
+  const items = ref<SectionItem[]>([{
       title: 'Log in',
       link: '/login'
-    },
-    {
+    }, {
       title: 'Sign up',
       link: '/signup'
     }
-  ]
-  const userSections = ref([
-    {
-      title: 'Account',
-      icon: UserIcon,
-      isOpen: !(name && email),
-      items: items
-    },
   ])
-  
+
+  const admin = [{
+      title: 'Casts',
+      icon: UserIcon,
+      link: '/admin/actors'
+  },
+  {
+      title: 'Create Casts',
+      icon: UserPlus2Icon,
+      link: '/admin/actors/create'
+  },
+  {
+      title: 'Schedules',
+      icon: TimerIcon,
+      link: '/admin/actors'
+  },
+  {
+      title: 'Create Movie',
+      icon: VideotapeIcon,
+      link: '/admin/create-movie'
+  }]
+
   const toggleSidebar = () => {
     isOpen.value = !isOpen.value
   }
-  
-  const toggleSection = (index: number) => {
-    userSections.value[index].isOpen = !userSections.value[index].isOpen
-  }
+  const clearUserFunc = ref<Function>((title: string) => {
+    console.log('here')
+  })
+
+  onMounted(() => {
+    const { user, clearUser } = useUser();
+    clearUserFunc.value = (title: string) => {
+
+      if(title === 'Log out') {
+
+        clearUser()
+      }
+    }
+    name.value = user.value?.first_name + " " + user.value?.last_name;
+    email.value = user.value?.email;
+    role.value = user.value?.role;
+
+    if (role.value === 'cinema') {
+      mainSections.value = [...mainSections.value, ...admin]
+    }
+
+    if (user.value) {
+      items.value = [{
+          title: 'Log out',
+          link: '/'
+        },{
+          title: 'Profile',
+          link: '/profile'
+      }]
+    }
+  })
 </script>

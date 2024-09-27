@@ -76,16 +76,14 @@
       last_name: values.lastname,
     };
     try {
+      const { setUser } = useUser();
       const res = await executeSignUp(user);
-
-      localStorage.setItem('name', res.first_name+" "+res.last_name);
-      localStorage.setItem('email', res.email);
-      localStorage.setItem('role', res.role);
+      setUser(res);
       toast.add({ id: 'auth', title: 'Successfull Signed Up', description: 'Account created successfully', color: 'green'});
       router.replace({path: '/'});
     } catch (err) {
       const errorMessage = (err as Error).message;
-      toast.add({ id: 'auth', title: 'Couldn\'t sign up', description: errorMessage, color: 'red'});
+      console.log("Sign Up: ", errorMessage);
     }
   });
 
