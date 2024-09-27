@@ -74,10 +74,10 @@
                 <ul v-if="isOpen && section.isOpen" class="mt-2 space-y-2">
                   <li v-for="(item, itemIndex) in section.items" :key="itemIndex">
                     <a
-                      href="#"
+                      :href="item.link"
                       class="block px-4 py-2 text-sm text-gray-400 hover:bg-gray-700 hover:text-gray-100"
                     >
-                      {{ item }}
+                      {{ item.title }}
                     </a>
                   </li>
                 </ul>
@@ -85,14 +85,15 @@
             </div>
   
             <!-- User Profile Section -->
-            <div class="border-t border-gray-700 pt-4 pb-3 px-4">
+
+            <div v-if="name && email" class="border-t border-gray-700 pt-4 pb-3 px-4">
               <div class="flex items-center">
                 <div class="flex-shrink-0">
                   <img class="h-10 w-10 rounded-full" src="/blank-profile-picture.webp" alt="User avatar" />
                 </div>
                 <div v-if="isOpen" class="ml-3">
-                  <div class="text-base font-medium leading-none text-gray-100">John Doe</div>
-                  <div class="text-sm font-medium leading-none text-gray-400 mt-1">john@example.com</div>
+                  <div class="text-base font-medium leading-none text-gray-100">{{name}}</div>
+                  <div class="text-sm font-medium leading-none text-gray-400 mt-1">{{email}}</div>
                 </div>
               </div>
             </div>
@@ -106,7 +107,7 @@
     </div>
   </template>
   
-  <script setup lang="ts">
+<script setup lang="ts">
   import { MenuIcon, XIcon, ChevronDownIcon, VideoIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon, TicketIcon } from 'lucide-vue-next'
   import { ref } from 'vue'
   const isOpen = ref(true)
@@ -138,13 +139,36 @@
       link: '/tickets'
     }
   ])
+
+  const name = localStorage.getItem('name');
+  const email = localStorage.getItem('email');
   
+  
+  const items = (name && email) ? [
+    {
+      title: 'Log out',
+      link: '/logout'
+    },
+    {
+      title: 'Profile',
+      link: '/profile'
+    }
+  ] : [
+    {
+      title: 'Log in',
+      link: '/login'
+    },
+    {
+      title: 'Sign up',
+      link: '/signup'
+    }
+  ]
   const userSections = ref([
     {
       title: 'Account',
       icon: UserIcon,
-      isOpen: false,
-      items: ['Log out', 'Profile']
+      isOpen: !(name && email),
+      items: items
     },
   ])
   
@@ -155,4 +179,4 @@
   const toggleSection = (index: number) => {
     userSections.value[index].isOpen = !userSections.value[index].isOpen
   }
-  </script>
+</script>
