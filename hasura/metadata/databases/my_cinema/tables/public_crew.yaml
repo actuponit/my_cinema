@@ -30,6 +30,7 @@ select_permissions:
         - cast_id
         - movie_id
       filter: {}
+      allow_aggregations: true
     comment: ""
   - role: user
     permission:

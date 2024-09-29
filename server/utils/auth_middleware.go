@@ -24,14 +24,14 @@ func AuthMiddleware(roles ...string) gin.HandlerFunc {
 		}
 		claims, err := ValidateToken(authSlice[1])
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+			c.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
 			c.Abort()
 			return
 		}
 
 		hasuraClaims, ok := claims["https://hasura.io/jwt/claims"].(map[string]interface{})
 		if ok {
-			c.Set("id", hasuraClaims["x-hasura-user-id"].(int))
+			c.Set("id", hasuraClaims["x-hasura-user-id"].(string))
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			c.Abort()

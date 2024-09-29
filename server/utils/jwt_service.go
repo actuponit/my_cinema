@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"time"
+	"strconv"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -17,11 +17,10 @@ func GenerateToken(id int, role string) (string, error) {
 	hasura_claims := map[string]interface{}{
 		"x-hasura-allowed-roles": []string{role},
 		"x-hasura-default-role":  role,
-		"x-hasura-user-id":       id,
+		"x-hasura-user-id":       strconv.Itoa(id),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"Role":                         role,
-		"exp":                          time.Now().Add(time.Hour * 3).Unix(),
 		"https://hasura.io/jwt/claims": hasura_claims,
 	})
 

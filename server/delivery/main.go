@@ -5,6 +5,7 @@ import (
 	routers "cinema-server/delivery/routes"
 	"cinema-server/repositories"
 	"cinema-server/services"
+	"cinema-server/utils"
 	"log"
 	"net/http"
 	"os"
@@ -27,7 +28,9 @@ func (h *hasuraAuthTransport) RoundTrip(req *http.Request) (*http.Response, erro
 func main() {
 
 	router := gin.New()
+	router.Use(utils.CORSMiddleware())
 	router.Use(gin.Logger())
+
 	adminSecret := os.Getenv("HASURA_GRAPHQL_ADMIN_SECRET")
 	hasuraEndpoint := os.Getenv("HASURA_GRAPHQL_ENDPOINT")
 	httpClient := &http.Client{

@@ -86,6 +86,7 @@ select_permissions:
         - genre
         - title
       filter: {}
+      allow_aggregations: true
     comment: ""
   - role: user
     permission:

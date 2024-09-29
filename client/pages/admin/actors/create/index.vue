@@ -1,8 +1,8 @@
 <template>
     <div class="container mx-auto p-6 flex-1">
     	<h1 class="text-3xl font-bold mb-6">Add New Cast Member</h1>
-			<UForm :state="values" @submit="onSubmit">
-				<div class="p-6">
+			<div class="p-6">
+				<form method="post" @submit="onSubmit">
 					<div class="grid gap-6">
 						<UFormGroup label="Is the preson a director" help="The default is an actor" name="isDirector">
 							<UToggle v-model="isDirector" size="2xl" class="mt-3" />
@@ -19,12 +19,12 @@
             <UFormGroup label="Photo" :error="photoProps.error" help="The image must be less than 5mb and an image format" >
               <UInput type="file" accept="image/*" name="photo" class="my-3" id="photo" @change="photo=$event"/>
             </UFormGroup>
-						<UButton :loading="loading" type="submit" class="inline-flex col-span-1 ml-auto justify-center py-2 px-4 border justify-self-end border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+						<UButton :loading="loading" @click="onSubmit" type="submit" class="inline-flex col-span-1 ml-auto justify-center py-2 px-4 border justify-self-end border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
 							Save Cast
 						</UButton>
 					</div>
-				</div>
-			</UForm>
+				</form>
+			</div>
 
 		</div>
     
@@ -44,34 +44,39 @@ const schema = yup.object().shape({
 		console.log("Photo loading problem, ", value, p)
 		return false
 	}),
-	isDirector: yup.boolean().required(),
+	isDirector: yup.boolean().required().default(false),
 });
 
-const {defineField, handleSubmit, values } = useForm({
+const {defineField, handleSubmit, resetForm, } = useForm({
 	validationSchema: schema,
 })
+
 const nuxtUiConfig = {
 	props: (state: { errors: any[]; }) => ({
 		error: state.errors[0]
 	}),
 };
+
 const [firstname, firstnameProps] = defineField('firstname', nuxtUiConfig)
 const [lastname, lastnameProps] = defineField('lastname', nuxtUiConfig)
 const [photo, photoProps] = defineField('photo', nuxtUiConfig)
 const [bio, bioProps] = defineField('bio', nuxtUiConfig)
-const [isDirector, isDirectorProps] = defineField('isDierector', nuxtUiConfig)
+const [isDirector, isDirectorProps] = defineField('isDirector', nuxtUiConfig)
 
-const { executeInsert, loading } = ();
+const { executeInsert, loading } = useCastInsert();
 
+const toast = useToast();
 const onSubmit = handleSubmit(async (values) => {
 	console.log(values)
-	const { data, error, status } = await useUpload([values.photo]);
-	console.log(data.value)
-	if (status.value === 'success') {
-		console.log("Photo uploaded successfully")
-	}
-	const castedData = Array.isArray(data.value) ? data.value.map(item => ({ image_url: item.image_url })) : [];
 	try {
+		if (!values.photo) return 
+		const { data, status } = await useUploadImages(values.photo);
+		console.log(data.value)
+		if (status.value === 'success') {
+			console.log("Photo uploaded successfully")
+		}
+		if (!data.value) return
+		const castedData = Array.isArray(data.value) ? data.value.map(item => ({ image_url: item.image_url })) : [];
 		executeInsert({
 			first_name: values.firstname,
 			last_name: values.lastname,
@@ -79,10 +84,19 @@ const onSubmit = handleSubmit(async (values) => {
 			photo_url: castedData[0].image_url,
 			is_director: values.isDirector
 		})
+		toast.add({
+			title: "Successfull operation",
+			description: "Cast member added successfuly!!",
+			color: "green"
+		})
+		resetForm();
 	} catch (error) {
+		toast.add({
+			title: "Error while creating cast",
+			color: "red"
+		})
 		console.log("Error casting data", error)
 	}
-	// Here you would typically send the data to your backend
 })
 
 </script>

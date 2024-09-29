@@ -4,5 +4,22 @@ type Cast = {
   last_name: string;
   photo_url?: string;
   bio?: string;
-  isDirector: boolean;
+  is_director: boolean;
+  crews: [{ movie: CastMovie }]
+  movies?: number | [CastMovie];
+  movies_aggregate?: {
+    aggregate: {
+      count: number;
+    };
+  };
+  crews_aggregate?: {
+    aggregate: {
+      count: number;
+    };
+  };
+}
+
+type CastMovie = {
+  published_at: string
+  title: string
 }

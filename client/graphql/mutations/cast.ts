@@ -7,8 +7,8 @@ export const CAST_INSERT = gql`
       first_name
       last_name
       photo_url
-      bio
       id
+      is_director
     }
   }
 ` 

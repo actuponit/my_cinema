@@ -8,6 +8,10 @@ configuration:
   custom_column_names:
     movie_id: movie_id
   custom_root_fields: {}
+object_relationships:
+  - name: movie
+    using:
+      foreign_key_constraint_on: movie_id
 insert_permissions:
   - role: user
     permission:
