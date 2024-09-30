@@ -20,6 +20,7 @@ type Cast = {
 }
 
 type CastMovie = {
-  published_at: string
-  title: string
+  published_at: string;
+  title: string;
+  id?: number;
 }

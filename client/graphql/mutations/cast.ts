@@ -12,3 +12,11 @@ export const CAST_INSERT = gql`
     }
   }
 ` 
+export const ASSIGN_MOVIE = gql`
+  mutation MyMutation($object: crew_insert_input!) {
+    insert_crew_one(object: $object) {
+      cast_id
+      movie_id
+    }
+}
+`

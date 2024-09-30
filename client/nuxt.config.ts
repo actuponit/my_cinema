@@ -11,6 +11,7 @@ export default defineNuxtConfig({
     clients: {
       default: {
         httpEndpoint: 'http://localhost:8080/v1/graphql',
+        connectToDevTools: true,
       }
     },
   },

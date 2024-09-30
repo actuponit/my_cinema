@@ -42,4 +42,14 @@ export const CAST_QUERY_BYID = gql`
     photo_url
   }
 }
-` 
+`
+export const CAST_QUERY_MOVIE = gql`
+
+  query MyQuery($where: movies_bool_exp!) {
+  movies(where: $where) {
+    title
+    published_at
+    id
+  }
+}
+`
