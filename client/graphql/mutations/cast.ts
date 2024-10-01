@@ -20,3 +20,23 @@ export const ASSIGN_MOVIE = gql`
     }
 }
 `
+
+export const CAST_UPDATE = gql`
+  mutation MyMutation($id: Int!, $_set: casts_set_input!) {
+    update_casts_by_pk(pk_columns: {id: $id}, _set: $_set) {
+      bio
+      first_name
+      id
+      is_director
+      last_name
+    }
+  }
+`
+
+export const CAST_DELETE = gql`
+  mutation MyMutation($id: Int!) {
+    delete_casts_by_pk(id: $id) {
+      id
+    }
+  }
+`

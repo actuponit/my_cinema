@@ -5,9 +5,6 @@ object_relationships:
   - name: genra
     using:
       foreign_key_constraint_on: genre
-  - name: movie_thumbnail
-    using:
-      foreign_key_constraint_on: featured_image
   - name: my_director
     using:
       foreign_key_constraint_on: director
@@ -22,7 +19,7 @@ array_relationships:
   - name: movie_thumbnails
     using:
       foreign_key_constraint_on:
-        column: movie
+        column: movie_id
         table:
           name: movie_thumbnails
           schema: public
@@ -118,7 +115,7 @@ update_permissions:
         - genre
         - title
       filter: {}
-      check: {}
+      check: null
     comment: ""
 delete_permissions:
   - role: cinema

@@ -50,6 +50,7 @@ select_permissions:
         - last_name
         - photo_url
       filter: {}
+      allow_aggregations: true
     comment: ""
   - role: user
     permission:
@@ -80,3 +81,28 @@ delete_permissions:
     permission:
       filter: {}
     comment: ""
+event_triggers:
+  - name: delete_photo
+    definition:
+      delete:
+        columns: '*'
+      enable_manual: true
+      update:
+        columns:
+          - photo_url
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: '{{WEB_HOOK_URL}}/uploads'
+    request_transform:
+      body:
+        action: transform
+        template: |-
+          {
+            "url": {{$body.event.data.old.photo_url}}
+          }
+      method: DELETE
+      query_params: {}
+      template_engine: Kriti
+      version: 2

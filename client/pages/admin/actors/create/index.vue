@@ -19,6 +19,10 @@
             <UFormGroup label="Photo" :error="photoProps.error" help="The image must be less than 5mb and an image format" >
               <UInput type="file" accept="image/*" name="photo" class="my-3" id="photo" @change="photo=$event"/>
             </UFormGroup>
+						<div>
+							<p class="text-sm text-gray-500 mb-2">Preview of the selected image</p>
+							<PreviewImage :files="photo" />
+						</div>
 						<UButton :loading="loading" @click="onSubmit" type="submit" class="inline-flex col-span-1 ml-auto justify-center py-2 px-4 border justify-self-end border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
 							Save Cast
 						</UButton>
@@ -63,33 +67,35 @@ const [photo, photoProps] = defineField('photo', nuxtUiConfig)
 const [bio, bioProps] = defineField('bio', nuxtUiConfig)
 const [isDirector, isDirectorProps] = defineField('isDirector', nuxtUiConfig)
 
-const { executeInsert, loading } = useCastInsert();
+const { executeInsert, loading, onDone } = useCastInsert();
 
 const toast = useToast();
+onDone(() => {
+	toast.add({
+		title: "Successfull operation",
+		description: "Cast member added successfuly!!",
+		color: "green"
+	})
+	resetForm();
+	useRouter().replace('/admin/actors')
+})
 const onSubmit = handleSubmit(async (values) => {
 	console.log(values)
 	try {
 		if (!values.photo) return 
 		const { data, status } = await useUploadImages(values.photo);
-		console.log(data.value)
 		if (status.value === 'success') {
 			console.log("Photo uploaded successfully")
 		}
 		if (!data.value) return
 		const castedData = Array.isArray(data.value) ? data.value.map(item => ({ image_url: item.image_url })) : [];
-		executeInsert({
+		await executeInsert({
 			first_name: values.firstname,
 			last_name: values.lastname,
 			bio: values.bio,
 			photo_url: castedData[0].image_url,
 			is_director: values.isDirector
 		})
-		toast.add({
-			title: "Successfull operation",
-			description: "Cast member added successfuly!!",
-			color: "green"
-		})
-		resetForm();
 	} catch (error) {
 		toast.add({
 			title: "Error while creating cast",

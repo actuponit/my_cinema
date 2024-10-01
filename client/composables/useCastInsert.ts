@@ -1,7 +1,10 @@
 import { CAST_INSERT } from "~/graphql/mutations/cast";
+import { CAST_QUERY } from "~/graphql/queries/casts";
 
 export function useCastInsert() {
-  const { mutate, loading, } = useMutation(CAST_INSERT);
+  const { mutate, loading, onDone } = useMutation(CAST_INSERT, {
+    refetchQueries: [{query: CAST_QUERY}]
+  });
 
   const executeInsert = async (values: any) => {
     try {
@@ -13,5 +16,5 @@ export function useCastInsert() {
       throw createError((err as Error).message);
     }
   }
-  return { loading, executeInsert };
+  return { loading, executeInsert, onDone };
 }

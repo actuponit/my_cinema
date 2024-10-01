@@ -4,6 +4,9 @@
       <!-- Actor Information -->
 
       <div v-if="!status" class="bg-gray-800 shadow-md rounded-lg overflow-hidden mb-8">
+        <UButton variant="link" @click="router.push(`/admin/actors/create/${id}`)">
+          Edit Info
+        </UButton>
         <div class="p-6 sm:flex sm:items-start">
           <div class="mb-4 sm:mb-0 sm:mr-6 flex-shrink-0">
             <img :src="displayImage((actor as Cast).photo_url)" :alt="(actor as Cast).first_name" class="w-32 h-32  rounded-lg shadow-lg">
@@ -90,7 +93,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { CAST_QUERY_BYID, CAST_QUERY_MOVIE } from '~/graphql/queries/casts';
-  
+const router = useRouter();
   const {id} = useRoute().params
 
   const { result:data, loading:status, } = useQuery<{ casts_by_pk: Cast }>(CAST_QUERY_BYID, { id }, {
@@ -102,7 +105,7 @@ import { CAST_QUERY_BYID, CAST_QUERY_MOVIE } from '~/graphql/queries/casts';
 
   const where = {_and: {title: {_ilike: `%%`}, _not: {crews: {cast_id: {_eq: id}}}}}
 
-  const { result, loading, refetch } = useQuery<{ movies: CastMovie[] }>(CAST_QUERY_MOVIE, { where })
+  const { result, loading, refetch } = useQuery<{ movies: CastMovie[] }>(CAST_QUERY_MOVIE, { where }, )
 
   const search = async (arg: string) =>{
     await refetch({ where: {_and: {title: {_ilike: `%${arg}%`}, _not: {crews: {cast_id: {_eq: id}}}}}})
