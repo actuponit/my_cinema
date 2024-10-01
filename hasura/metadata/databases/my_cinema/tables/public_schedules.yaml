@@ -24,40 +24,44 @@ insert_permissions:
     permission:
       check: {}
       columns:
-        - id
-        - movie
         - format
         - hall
+        - id
+        - movie
+        - price
         - start_time
     comment: ""
 select_permissions:
   - role: anonymous
     permission:
       columns:
-        - id
-        - movie
         - format
         - hall
+        - id
+        - movie
+        - price
         - start_time
       filter: {}
     comment: ""
   - role: cinema
     permission:
       columns:
-        - id
-        - movie
         - format
         - hall
+        - id
+        - movie
+        - price
         - start_time
       filter: {}
     comment: ""
   - role: user
     permission:
       columns:
-        - id
-        - movie
         - format
         - hall
+        - id
+        - movie
+        - price
         - start_time
       filter: {}
     comment: ""
@@ -65,10 +69,11 @@ update_permissions:
   - role: cinema
     permission:
       columns:
-        - id
-        - movie
         - format
         - hall
+        - id
+        - movie
+        - price
         - start_time
       filter: {}
       check: null

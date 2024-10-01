@@ -1,7 +1,7 @@
 <template>
     <div class="container mx-auto p-6 flex-1">
       <h1 class="text-3xl font-bold mb-6">Add New Movie</h1>
-      <UForm :state="values" @submit="onSubmit">
+      <form @submit="onSubmit" methd="post">
         <div class="p-6">
           <div class="col-span-2 bg-gray-800 p-4 mb-6 text-lg font-bold border-b border-b-gray-50">
             General info
@@ -10,8 +10,8 @@
             <UFormGroup label="Title" name="title" v-bind="titleProps" class="space-y-4">
               <UInput name="title" v-model="title" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" />
             </UFormGroup>
-            <UFormGroup label="Release Date" name="releaseDate" v-bind="releaseDateProps" class="space-y-4">
-              <VueDatePicker name="releaseDate" v-model="releaseDate" :enable-time-picker="false" dark/>
+            <UFormGroup label="Release Date" name="published_at" v-bind="releaseDateProps" class="space-y-4">
+              <VueDatePicker name="published_at" v-model="releaseDate" :enable-time-picker="false" dark/>
             </UFormGroup>
             <UFormGroup label="Genre" name="genere" v-bind="genreProps" class="space-y-4">
               <UInputMenu name="genre" v-model="genre" :options="genres" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" />
@@ -46,12 +46,33 @@
               Casts and Crews
             </div>
             <UFormGroup label="Director" :error="directorProps.error" class="space-y-4">
-              <USelectMenu name="director" :options="directors" value-attribute="id" option-attribute="name" type="text" v-model="director" searchable/>
+              <USelectMenu name="director" 
+              value-attribute="id" 
+              option-attribute="name" 
+              v-model="director" 
+              :searchable="searchDirctors" 
+              :loading="loadingDirectors"
+              :searchableLazy="true"
+              :debounce="400"
+            />
             </UFormGroup>
             
             <UFormGroup class="space-y-4" label="Actors" :error="actorsProps.error">
-              <USelectMenu :options="directors" v-model="actors" value-attribute="id" option-attribute="name"  multiple searchable/>
-            </UFormGroup>
+              <USelectMenu 
+                v-model="actors" 
+                name="actors"
+                id="actors"
+                :options="acotrsOptions"
+                value-attribute="id" 
+                option-attribute="name"
+                v-model:query="arg"
+                searchable
+                :loading="loadingActors"
+                :searchableLazy="true"
+                :debounce="400"
+                multiple
+              />
+            </UFormGroup> 
             <div class="col-span-2 bg-gray-800 p-4 text-lg mt-4 mb-2 font-bold border-b border-b-gray-50">
               Description
             </div>
@@ -67,7 +88,7 @@
         <button type="submit" @click="onSubmit" class="inline-flex justify-center py-2 px-4 border justify-self-end ml-auto border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
           Save Movie
         </button>
-      </UForm>
+      </form>
     </div>
   </template>
   
@@ -78,24 +99,50 @@
   import stos from '~/utils/secondToString';
   import VueDatePicker from '@vuepic/vue-datepicker';
   import '@vuepic/vue-datepicker/dist/main.css';
+  import { genres } from '~/constants';
+  import { MOVIE_CASTS } from '~/graphql/queries/movies';
   
   const onFileChange = (files: FileList) => {
-    if (files) {
-      thumbnails.value = Array.from(files);
-    }
+    thumbnails.value = files;
   }
 
-  const genres = [
-    'Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi', 'Thriller'
-  ]
+  const dwhere = {is_director: {_eq: true}, _or: [{first_name: {_ilike: "%%"}}, {last_name: {_ilike: "%%"}}]}
+  
+  const { refetch:refetchDirectors, loading: loadingDirectors, result: directors, restart } = useQuery(MOVIE_CASTS, {where: dwhere})
+  const searchDirctors = async (arg: string) =>{
+    if (dwhere._or && dwhere._or[0] && dwhere._or[0].first_name)
+      dwhere._or[0].first_name._ilike = `%${arg}%`
 
-  const directors = [
-    {name: 'Abebe Chala', id: 1}, {name: 'Bekele Chala', id: 2}, {name: 'Debebe Chala', id: 3}
-  ]
+    if (dwhere._or && dwhere._or[1] && dwhere._or[1].last_name)
+      dwhere._or[1].last_name._ilike = `%${arg}%`
+    
+    await refetchDirectors({where: dwhere})
+
+    if (directors.value)
+      return directors.value.casts.map((cast: any) => ({id: cast.id, name: `${cast.first_name} ${cast.last_name}`}))
+    return []
+  }
+
+  const awhere = {is_director: {_eq: false}, _or: [{first_name: {_ilike: "%%"}}, {last_name: {_ilike: "%%"}}]}
+  const { refetch:refetchActors, loading:loadingActors, result:actorsResult } = useQuery(MOVIE_CASTS, {where: awhere})
+  const arg = ref('')
+  const acotrsOptions = ref([])
+
+  watch(() => arg, async () => {
+    console.log(arg.value)
+    if (awhere._or && awhere._or[0] && awhere._or[0].first_name)
+      awhere._or[0].first_name._ilike = `%${arg.value}%`
+    if (awhere._or && awhere._or[1] && awhere._or[1].last_name)
+      awhere._or[1].last_name._ilike = `%${arg.value}%`
+    acotrsOptions.value = []
+    await refetchActors({where: awhere})
+    if (actorsResult.value)
+      acotrsOptions.value = actorsResult.value.casts.map((cast: any) => ({id: cast.id, name: `${cast.first_name} ${cast.last_name}`}))
+  }, {immediate: true})
 
   const schema = yup.object().shape({
     title: yup.string().required('Title is required'),
-    releaseDate: yup.date().required('Release date is required'),
+    published_at: yup.date().required('Release date is required'),
     genre: yup.string().required('Genre is required').oneOf(genres),
     duration: yup.number().min(900, "Must be atleast 15 min").max(14400, "4 hours is enough").required("It is required to set a"),
     director: yup.number().required('You must choose at least one director'),
@@ -103,6 +150,7 @@
     description: yup.string().required('Description is required'),
     thumbnails: yup.mixed().required('You need to select at least one thumbnail').test('fileSize', 'File size is too large', (value: any) => {
       if (!value) return true
+      value = Array.from(value)
       if (Array.isArray(value) && value.every((file) => file.size < (1 << 20) * 10)) return true
       return false
     })
@@ -119,7 +167,7 @@
   };
 
   const [title, titleProps] = defineField('title', nuxtUiConfig);
-  const [releaseDate, releaseDateProps] = defineField('releaseDate', nuxtUiConfig);
+  const [releaseDate, releaseDateProps] = defineField('published_at', nuxtUiConfig);
   const [genre, genreProps] = defineField('genre', nuxtUiConfig);
   const [description, descriptionProps] = defineField('description', nuxtUiConfig);
   const [duration, durationProps] = defineField('duration', nuxtUiConfig);
@@ -131,21 +179,6 @@
   const updateDuration = (val: number) => {
     if (duration.value)
       duration.value += val
-  }
-  interface Duration {
-    hours: number;
-    minutes: number;
-    seconds: number;
-  }
-
-  interface MovieFormValues {
-    title: string;
-    releaseDate: Date;
-    genre: string;
-    description: string;
-    duration: Duration;
-    director: string;
-    thumbnails: File[];
   }
 
   const durationString: ComputedRef<string> = computed(()=>{
@@ -159,9 +192,39 @@
       s += obj.seconds.toString().padStart(2, '0') + ' Seconds'
     return s
   });
-  const onSubmit = handleSubmit((values) => {
-    console.log("schedules: ", schedules)
-    console.log("submit: ", values.thumbnails)
-    // Here you would typically send the data to your backend
+  const {executeInsert, loading, onDone} = useInsertMovie()
+  const toast = useToast()
+  onDone(({data: {insert_movies_one}}) => {
+    toast.add({
+      color: 'green',
+      title: 'Movie Added',
+      description: 'The movie has been added successfully',
+    })
+    console.log("result:", insert_movies_one.id)
+    useRouter().replace(`/movies/${insert_movies_one.id}`)
+  })
+
+  const onSubmit = handleSubmit(async (values) => {
+    console.log("schedule: ", schedules.value)
+    try {
+      if (!values.thumbnails) return 
+      let schedulesData = schedules.value.filter((schedule: any) => {
+        return !(!schedule.price || schedule.price < 10 || schedule.hall === '' || schedule.format === '' || schedule.date === '') }).map((schedule: any) => {
+        return {
+          start_time: schedule.date,
+          hall: schedule.hall,
+          format: cinemaFormat(schedule.format),
+          price: schedule.price
+        }
+      })
+      
+      const { data, status } = await useUploadImages(values.thumbnails);
+      
+      if (status.value !== 'success' || !data.value) return
+      
+      executeInsert(values, data.value, schedulesData)
+    } catch (error) {
+      console.log("Error casting data", error)
+    }
   })
 </script>

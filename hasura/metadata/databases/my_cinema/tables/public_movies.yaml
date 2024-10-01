@@ -44,7 +44,7 @@ insert_permissions:
       columns:
         - published_at
         - director
-        - duration_second
+        - duration
         - id
         - average_rating
         - total_rating
@@ -59,7 +59,7 @@ select_permissions:
       columns:
         - published_at
         - director
-        - duration_second
+        - duration
         - id
         - average_rating
         - total_rating
@@ -74,7 +74,7 @@ select_permissions:
       columns:
         - published_at
         - director
-        - duration_second
+        - duration
         - id
         - average_rating
         - total_rating
@@ -90,7 +90,7 @@ select_permissions:
       columns:
         - published_at
         - director
-        - duration_second
+        - duration
         - id
         - average_rating
         - total_rating
@@ -106,7 +106,7 @@ update_permissions:
       columns:
         - published_at
         - director
-        - duration_second
+        - duration
         - id
         - average_rating
         - total_rating

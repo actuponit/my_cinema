@@ -7,10 +7,10 @@
           </UFormGroup>
           <div class="flex gap-3 justify-evenly">
             <UFormGroup label="Cinema Hall" :name="`hall-${index}`" :error="displayError('hall', index)">
-              <USelectMenu :name="`hall-${index}`" :id="`hall-${index}`" v-model="schedule.value.hall" :options="cinemaHalls" />
+              <USelectMenu :name="`hall-${index}`" :id="`hall-${index}`" v-model="schedule.value.hall" :options="halls" />
             </UFormGroup>
             <UFormGroup label="Format" :name="`format-${index}`" :error="displayError('format', index)">
-              <USelectMenu :name="`format-${index}`" :id="`format-${index}`" v-model="schedule.value.format" :options="cinemaFormats" />
+              <USelectMenu :name="`format-${index}`" :id="`format-${index}`" v-model="schedule.value.format" :options="formats" />
             </UFormGroup>
           </div>
           <UFormGroup label="Price" :name="`price-${index}`" :error="displayError('price', index)">
@@ -32,6 +32,7 @@
   import * as yup from 'yup';
   import VueDatePicker from '@vuepic/vue-datepicker';
   import '@vuepic/vue-datepicker/dist/main.css';
+import { formats, halls } from '~/constants';
 
   const props = defineProps({
     modelValue: {
@@ -54,8 +55,8 @@
           .typeError('Invalid date format')
           .min(new Date(), 'Date cannot be in the past')
           .required('Date is required'),
-        hall: yup.string().required('Cinema hall is required').oneOf(cinemaHalls, 'Invalid cinema hall'),
-        format: yup.string().required('Cinema format is required').oneOf(cinemaFormats, 'Invalid cinema hall'),
+        hall: yup.string().required('Cinema hall is required').oneOf(halls, 'Invalid cinema hall'),
+        format: yup.string().required('Cinema format is required').oneOf(formats, 'Invalid cinema hall'),
         price: yup.number()
         .typeError('Must be a number')
         .required('Price is required').min(10, 'Price must be greater than 10')
