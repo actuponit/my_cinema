@@ -40,3 +40,11 @@ export const CAST_DELETE = gql`
     }
   }
 `
+
+export const CAST_MOVIE_DELETE = gql`
+  mutation MyMutation($cast_id: Int!, $movie_id: Int!) {
+    delete_crew(where: {cast_id: {_eq: $cast_id}, movie_id: {_eq: $movie_id}}) {
+      affected_rows
+    }
+  }
+`

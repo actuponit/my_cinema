@@ -27,6 +27,7 @@ export const CAST_QUERY_BYID = gql`
     bio
     crews(distinct_on: movie_id) {
       movie {
+        id
         published_at
         title
       }

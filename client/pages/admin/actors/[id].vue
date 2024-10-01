@@ -56,6 +56,9 @@
                         {{ formatYear(movie.movie.published_at) }}
                       </p>
                     </div>
+                    <UButton variant="link" color="red" @click="executeDelete(id as string, movie.movie.id as string)">
+                      Delete
+                    </UButton>
                   </div>
                 </li>
               </div>
@@ -119,7 +122,6 @@ const router = useRouter();
   const newMovie = ref<number>(-1)  
   // Function to add a new movie
   const { executeInsert, loading: addLoading, onDone} = useAssignMovie()
-  
   const toast = useToast()
   onDone(async ()=>{
     toast.add({
@@ -131,7 +133,16 @@ const router = useRouter();
     useRouter().replace('/admin/actors/'+id)
     await refetch(where,)
   })
-
+  
+  const {executeDelete, onDone:movieDeleted, loading:deleteLoad} = useCastDeleteMovie(id as string);
+  movieDeleted(async ()=>{
+    toast.add({
+      color: 'green',
+      title: 'Movie Deleted',
+      description: 'The actor has been removed from the movie crew'
+    })
+    await refetch(where,)
+  })
   const addMovie = async () => {
     console.log(newMovie.value)
     if (newMovie.value !== -1) {
