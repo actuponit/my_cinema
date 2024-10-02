@@ -4,6 +4,6 @@ export const cinemaFormat = (val: string) => {
 }
 
 export const cinemaFormatReverse = (val: string) => {
-  if (val !== 'IMAX') return val;
+  if (val === 'IMAX') return val;
   return val.slice(1);
 }

@@ -23,16 +23,16 @@ export type Schedule = {
     price: number;
 }
 
-export type Movie = {
-    id: number;
-    title: string;
-    thumbnail: string;
-    rating: number;
-    duration: string;
-    releaseDate: Date;
-    genre: string;
-    totalreviews: number;
-}
+// export type Movie = {
+//     id: number;
+//     title: string;
+//     thumbnail: string;
+//     rating: number;
+//     duration: string;
+//     releaseDate: Date;
+//     genre: string;
+//     totalreviews: number;
+// }
 
 export type MovieHome = Movie & {
     price: number;

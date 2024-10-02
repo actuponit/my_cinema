@@ -14,7 +14,7 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Date</p>
-            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ movieDetails.date }}</p>
+            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ movieDetails?.start }}</p>
           </div>
           <div>
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Time</p>
@@ -50,7 +50,7 @@
         <div v-if="ticketCount > 0" class="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
           <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Price</p>
           <p class="text-lg font-bold text-gray-900 dark:text-white">
-            ${{ (movieDetails.price * ticketCount).toFixed(2) }}
+            ${{ ((movieDetails.price || 0) * ticketCount).toFixed(2) }}
           </p>
         </div>
       </div>
@@ -71,14 +71,14 @@
 
 <script setup lang="ts">
   import { ref, computed } from 'vue'
-  import type { Schedule } from '~/types'
-
+  import type { Schedule } from '~/types/movie'
   const props = defineProps({
     movieDetails: {
       type: Object as () => Schedule,
       required: true
     }
   })
+  console.log('Schedule', props.movieDetails)
 
   const emit = defineEmits(['close'])
 

@@ -16,3 +16,14 @@ mutation MyMutation($object: movies_insert_input!) {
   }
 }
 `
+
+export const MOVIE_REVIEW = gql`
+mutation MyMutation($object: ratings_insert_input!) {
+  insert_ratings_one(object: $object) {
+    feedback
+    movie
+    user
+    rating
+  }
+}
+`
