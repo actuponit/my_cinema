@@ -139,13 +139,6 @@
     link: string;
   }
 
-  interface UserSection {
-    title: string;
-    icon: any;
-    isOpen: boolean;
-    items: Ref<SectionItem[]> | undefined;
-  }
-
   const items = ref<SectionItem[]>([{
       title: 'Log in',
       link: '/login'
@@ -179,35 +172,33 @@
   const toggleSidebar = () => {
     isOpen.value = !isOpen.value
   }
-  const clearUserFunc = ref<Function>((title: string) => {
-    console.log('here')
-  })
 
-  onMounted(() => {
-    const { user, clearUser } = useUser();
-    clearUserFunc.value = (title: string) => {
+  const { user, clearUser } = useUser();
 
-      if(title === 'Log out') {
-
-        clearUser()
-      }
+  const clearUserFunc = (title: string) => {
+    if (title === 'Log out') {
+      clearUser();
+      useToast().add({
+        title: 'Logged out',
+        description: 'You have been logged out',
+        color: 'green'
+      })
     }
-    name.value = user.value?.first_name + " " + user.value?.last_name;
-    email.value = user.value?.email;
-    role.value = user.value?.role;
+  }
+  if (user.value) {
+    items.value = [{
+        title: 'Log out',
+        link: '/'
+      },{
+        title: 'Profile',
+        link: '/profile'
+    }]
+  }
 
-    if (role.value === 'cinema') {
-      mainSections.value = [...mainSections.value, ...admin]
-    }
-
-    if (user.value) {
-      items.value = [{
-          title: 'Log out',
-          link: '/'
-        },{
-          title: 'Profile',
-          link: '/profile'
-      }]
-    }
-  })
+  name.value = user.value?.first_name + " " + user.value?.last_name;
+  email.value = user.value?.email;
+  role.value = user.value?.role;
+  if (role.value === 'cinema') {
+    mainSections.value = [...mainSections.value, ...admin]
+  }
 </script>
