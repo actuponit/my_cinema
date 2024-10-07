@@ -28,7 +28,6 @@ const handleFileChange = () => {
   
     reader.onload = (e) => {
       if (e.target && e.target.result) {
-        console.log("result", e.target.result)
         previewImages.value.push(e.target.result)
       }
     }

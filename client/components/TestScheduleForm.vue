@@ -1,11 +1,11 @@
 <template>
     <div class="flex-1 w-full text-center col-span-2">
       <div v-for="(schedule, index) in fields" :key="schedule.key" class="mb-4 p-4 border border-gray-200 rounded-md">
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div :class="['grid grid-cols-1 gap-6', !rows && 'md:grid-cols-3']">
           <UFormGroup label="Schedule Date and time" :name="`date-${index}`" :error="displayError('date', index)">
             <VueDatePicker v-model="schedule.value.date" :is24="false" :min-date="new Date()" dark/>
           </UFormGroup>
-          <div class="flex gap-3 justify-evenly">
+          <div class="flex gap-3 justify-between">
             <UFormGroup label="Cinema Hall" :name="`hall-${index}`" :error="displayError('hall', index)">
               <USelectMenu :name="`hall-${index}`" :id="`hall-${index}`" v-model="schedule.value.hall" :options="halls" />
             </UFormGroup>
@@ -32,7 +32,7 @@
   import * as yup from 'yup';
   import VueDatePicker from '@vuepic/vue-datepicker';
   import '@vuepic/vue-datepicker/dist/main.css';
-import { formats, halls } from '~/constants';
+  import { formats, halls } from '~/constants';
 
   const props = defineProps({
     modelValue: {
@@ -42,11 +42,9 @@ import { formats, halls } from '~/constants';
     name: {
       type: String,
       required: true
-    }
+    },
+    rows: Boolean
   });
-
-  const cinemaHalls = ['Hall A', 'Hall B', 'Hall C', 'Hall D']
-  const cinemaFormats = ['3D', '4D', '2D', 'IMAX']
 
   const schema = yup.object({
     schedules: yup.array().of(

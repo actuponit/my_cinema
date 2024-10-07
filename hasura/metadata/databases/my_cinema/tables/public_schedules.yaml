@@ -26,7 +26,6 @@ insert_permissions:
       columns:
         - format
         - hall
-        - id
         - movie
         - price
         - start_time
@@ -71,7 +70,6 @@ update_permissions:
       columns:
         - format
         - hall
-        - id
         - movie
         - price
         - start_time

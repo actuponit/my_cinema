@@ -74,7 +74,7 @@
   import type { Schedule } from '~/types/movie'
   const props = defineProps({
     movieDetails: {
-      type: Object as () => Schedule,
+      type: Object,
       required: true
     }
   })

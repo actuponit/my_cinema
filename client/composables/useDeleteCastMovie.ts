@@ -1,19 +1,20 @@
 import { CAST_MOVIE_DELETE } from "~/graphql/mutations/cast";
 import { CAST_QUERY_BYID } from "~/graphql/queries/casts";
+import { MOVIE_BYID } from "~/graphql/queries/movies";
 
-export function useCastDeleteMovie(id: string) {
-  const { mutate, loading, onDone } = useMutation(CAST_MOVIE_DELETE, { refetchQueries: [{
-    query: CAST_QUERY_BYID,
-    variables: { id }
-  }]
-});
+export function useCastDeleteMovie() {
+  const { mutate, loading, onDone } = useMutation(CAST_MOVIE_DELETE);
 
   const executeDelete = async (cast_id: string, movie_id: string) => {
     try {
-      console.log('cast_id', cast_id);
-      console.log('movie', movie_id, typeof movie_id);
-      const response = await mutate({ cast_id, movie_id });
-      console.log('response', response);
+      const response = await mutate({ cast_id, movie_id }, { refetchQueries: [{
+        query: CAST_QUERY_BYID,
+        variables: { id:cast_id }
+      }, {
+        query: MOVIE_BYID,
+        variables: { id:movie_id }
+      }]
+    });
       
       // return response?.data.login.user;
     } catch (err) {

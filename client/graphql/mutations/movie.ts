@@ -27,3 +27,35 @@ mutation MyMutation($object: ratings_insert_input!) {
   }
 }
 `
+
+export const MOVIE_UPDATE = gql`
+mutation MyMutation($id: Int!, $_set: movies_set_input!) {
+  update_movies_by_pk(pk_columns: {id: $id}, _set: $_set) {
+    id
+    director
+    genre
+    duration
+    featured_image
+    description
+    published_at
+    title
+  }
+}
+`
+
+export const MOVIE_THUMBNAIL_DELETE = gql`
+mutation MyMutation($image_url: String!) {
+  delete_movie_thumbnails_by_pk(image_url: $image_url) {
+    image_url
+    movie_id
+  }
+}
+`
+
+export const MOVIE_THUMBNAIL_ADD = gql`
+mutation MyMutation($objects: [movie_thumbnails_insert_input!]!) {
+  insert_movie_thumbnails(objects: $objects) {
+    affected_rows
+  }
+}
+`

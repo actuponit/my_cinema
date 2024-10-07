@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen p-8 flex-1 max-w-full">
-      <div class="rounded-lg shadow-xl overflow-hidden shadow-black-50/20">
+      <div class="rounded-lg overflow-hidde shadow-inner shadow-blue-300">
         <div class="md:flex">
           <!-- Image Carousel -->
           <div class="md:w-1/2">
@@ -24,7 +24,7 @@
                 indicators
             >
               <template v-slot:default="{ item }">
-                <img :src="item" :alt="movie.title" class="w-full h-96 object-fill object-center" />
+                <img :src="item" :alt="movie.title" class="w-full h-96 object-fill object-center rounded-s-lg" />
               </template>
             
               <template v-slot:indicator="{ onClick, page, active }">
@@ -37,10 +37,14 @@
           <div class="md:w-1/2 p-6">
 						<div class="flex justify-between item-center">
 							<h1 class="text-3xl font-bold text-white mb-2">{{ movie.title }}</h1>
-							<UButton size="lg" variant="ghost" icon="i-heroicons-bookmark" label="Bookmark"/>
+
+							<UButton v-if="user?.role !== 'cinema'" size="lg" variant="ghost" icon="i-heroicons-bookmark" label="Bookmark"/>
+              <div v-if="user?.role === 'cinema'">
+                <UButton size="lg" variant="ghost" icon="i-heroicons-pencil" label="Edit" @click="onEdit"/>
+                <UButton size="lg" color="red" variant="ghost" icon="i-heroicons-trash" label="Delete"/>
+              </div>
 						</div>
             <div class="flex items-center mb-4">
-              <URating v-model="movie.rating" :length="5" />
               <span class="ml-2 text-sm text-gray-400">{{ movie.rating?.toFixed(1) }} / 5</span>
             </div>
             <p class="text-gray-300 mb-4">{{ movie.description }}</p>
@@ -51,19 +55,27 @@
                 {{ movie.duration.hours > 0 ? movie.duration.minutes + ' Mins, ':'' }} 
                 {{ movie.duration.hours > 0 ? movie.duration.seconds + ' Seconds':'' }} 
               </p>
-              <p><span class="font-semibold">Release Date:</span> {{ formatDate(movie.releaseDate) }}</p>
+              <p><span class="font-semibold">Release Date:</span> {{ formatDateShort(movie.releaseDate) }}</p>
             </div>
           </div>
         </div>
         
         <!-- Cast and Crew -->
         <div class="p-6 border-t border-gray-700 w-[calc(100vw-20rem)] overflow-x-scroll">
-          <h2 class="text-2xl font-bold text-white mb-4">Cast and Crew</h2>
+          <div class="flex w-full items-center">
+            <h2 class="text-2xl flex-1 font-bold text-white mb-4">Cast and Crew</h2>
+            <UButton size="sm" variant="link" color="primary" class="flex-shrink-0" @click="openChangeDirectorModal">Change director</UButton>
+          </div>
           <div class="flex gap-8 flex-nowrap">
-            <div v-for="person in movie.castAndCrew" :key="person.id" class="text-center min-w-fit">
+            <div v-for="person in movie.castAndCrew" :key="person.id" class="text-center min-w-fit relative">
               <UAvatar :src="person.image" size="xl" class="mb-2" />
               <p class="font-semibold text-white mx-2">{{ person.name }}</p>
               <p class="text-sm text-gray-400">{{ person.role }}</p>
+              <UButton size="xs" icon="i-heroicons-trash" v-if="person.role !== 'Director' && user?.role === 'cinema'" color="red" variant="ghost" class="absolute top-0 right-0" @click="openRemoveConfirmModal(person)" />
+            </div>
+            <div v-if="user?.role === 'cinema'" class="text-center min-w-fit flex flex-col justify-center items-center cursor-pointer" @click="openAddActorModal">
+              <UAvatar icon="i-heroicons-plus-circle" size="xl" class="mb-2"/>
+              <UButton variant="link">Add actor</UButton>
             </div>
           </div>
         </div>
@@ -78,13 +90,13 @@
             <div v-for="review in reviews" :key="review.id" class="bg-gray-700 p-4 rounded-lg">
               <div class="flex items-center mb-2 w-full justify-between">
                 <span class="font-semibold text-white">{{ review.userName }}</span>
-                <StarRating :initial-rating="3.75" :read-only="true"/>
+                <StarRating :initial-rating="movie.rating" :read-only="true"/>
               </div>
               <p class="text-gray-300">{{ review.comment }}</p>
             </div>
           </div>
           <div v-else>
-            <ErrorComponent title="No reviews yet" icon="i-heroicons-archive-box-x-mark"/>
+            <ErrorComponent title="No reviews yet" message="No reveiws for this movie yet" icon="i-heroicons-archive-box-x-mark"/>
           </div>
           
           <!-- Add Review Form -->
@@ -106,10 +118,14 @@
         
         <!-- Upcoming Schedules -->
         <div class="p-6 border-t border-gray-700">
-          <h2 class="text-2xl font-bold text-white mb-4">Upcoming Schedules</h2>
-          <UTable :columns="scheduleColumns" :rows="movie.schedules">
+          <div class="flex items-start">
+            <h2 class="text-2xl flex-1 font-bold text-white mb-4">Upcoming Schedules</h2>
+            <UButton v-if="user?.role === 'cinema'" variant="link" @click="openAddScheduleModal">Add schedule</UButton>
+          </div>
+          <UTable :columns="scheduleColumns" :rows="movie.schedules" >
             <template #actions-data="{ row }">
-              <UButton size="sm" @click="bookTicket(row)">Book Now</UButton>
+              <UButton v-if="user?.role === 'cinema'" size="sm" color="red" @click="openDeleteScheduleModal(row)">Delete schedule</UButton>
+              <UButton v-else size="sm" @click="bookTicket(row)">Book Now</UButton>
             </template>
           </UTable>
         </div>
@@ -118,16 +134,25 @@
 </template>
 
 <script setup lang="ts">
-import { BookingModal } from '#components';
+import { AddScheduleModal, BookingModal } from '#components';
+import AddActorModal from '~/components/AddActorModal.vue';
+import ChangeDirectorModal from '~/components/ChangeDirectorModal.vue';
+import ConfirmModal from '~/components/ConfirmModal.vue';
+import { DELETE_SCHEDULE } from '~/graphql/mutations/schedule';
 import { MOVIE_BYID } from '~/graphql/queries/movies';
-import type { ReviewForm } from '~/types';
 import type { Movie, Schedule } from '~/types/movie';
 
 const id = useRoute().params.id
+const modal = useModal()
+const toast = useToast();
+
 // Mock data for the movie
-console.log("id", id)
-const { result } = useQuery<{movies_by_pk: Movie}>(MOVIE_BYID, { id });
-console.log("result", result.value)
+const { result, loading } = useQuery<{movies_by_pk: Movie}>(MOVIE_BYID, { id });
+
+const onEdit = () => {
+  useRouter().push('/admin/movies/create/'+(id as string))
+}
+
 const castAndCrew = computed(() => {
   const actors = result.value?.movies_by_pk.crews?.map(({cast}) => ({
     id: cast.id,
@@ -142,33 +167,48 @@ const castAndCrew = computed(() => {
     image: displayImage(result.value?.movies_by_pk.my_director?.photo_url)
   }
   return [director, ...(actors || [])]
+},)
+
+const reviews = computed(() => {
+  const r = result.value?.movies_by_pk.ratings?.map(({feedback, userByUser, rating}) => ({
+    id: userByUser?.id,
+    userName: userByUser?.first_name + ' ' + userByUser?.last_name,
+    rating,
+    comment: feedback,
+  })) || [];
+  return showAll.value ? r : r.slice(0, 2)
 })
+
+const schedules = computed(() => {
+  return result.value?.movies_by_pk.schedules?.map(({id, start_time, hall, format, price}) => ({
+    id,
+    start: formatDateShort(start_time || ''),
+    time: formatTime(start_time || ''),
+    hall: hall,
+    format: cinemaFormatReverse(format || ''),
+    price: price,
+  })) || []
+})
+
+const images = computed(() => {
+  return result.value?.movies_by_pk.movie_thumbnails?.map(({image_url}) => displayImage(image_url)) || []
+})
+
+
 // const review = ref('')
-const movie = reactive({
-  id: 1,
+const movie = computed(() => ({
+  id: id,
   title: result.value?.movies_by_pk.title,
-  images: result.value?.movies_by_pk.movie_thumbnails?.map(({image_url}) => displayImage(image_url)),
+  images: images.value,
   rating: result.value?.movies_by_pk.average_rating,
   description: result.value?.movies_by_pk.description,
   genre: result.value?.movies_by_pk.genre,
   duration: secondToString(result.value?.movies_by_pk.duration || 0),
   releaseDate: formatDateShort(result.value?.movies_by_pk.published_at || ''),
   castAndCrew: castAndCrew.value,
-  reviews: result.value?.movies_by_pk.ratings?.map(({feedback, userByUser, rating}) => ({
-    id: userByUser?.id,
-    userName: userByUser?.first_name + ' ' + userByUser?.last_name,
-    rating,
-    comment: feedback,
-  })) || [],
-  schedules: result.value?.movies_by_pk.schedules?.map(({id, start_time, hall, format, price}) => ({
-    id,
-    start: formatDateShort(start_time || ''),
-    time: `${formatTime(start_time || '')}`,
-    hall: hall,
-    format: cinemaFormatReverse(format || ''),
-    price: price,
-  })) || [],
-})
+  reviews: reviews.value,
+  schedules: schedules.value,
+}))
 
 // Form state for adding a review
 const rating = ref(0)
@@ -184,15 +224,9 @@ const scheduleColumns = [
   { key: 'actions', label: 'Book' },
 ]
 
-// Function to format date
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-}
-
 // Function to submit a review
 const { executeInsert, onDone } = useInsertReview(id as string)
-const toast = useToast();
-const router = useRouter();
+
 onDone(() => {
   toast.add({
     title: "Successful Operation",
@@ -222,11 +256,60 @@ const submitReview = async (event: Event) => {
   await executeInsert(values)
 }
 const showAll = ref(false)
-const reviews = computed(() => {
-  return showAll.value ? movie.reviews : movie.reviews.slice(0, 2)
+
+const openAddActorModal = () => {
+  modal.open(AddActorModal, {
+    id: id as string,
+    onClose: () => {
+      modal.close()
+    }
+  })
+}
+
+const openChangeDirectorModal = () => {
+  modal.open(ChangeDirectorModal, {
+    id: id as string,
+    onClose: () => {
+      modal.close()
+    }
+  })
+}
+
+const {executeDelete, onDone: deletedActor} = useCastDeleteMovie()
+deletedActor((res) => {
+  toast.add({
+    title: "Successful Operation",
+    description: "Successfully removed actor from crew!",
+    color: 'green'
+  })
+  console.log("Deleted actor", res)
+  modal.close()
 })
 
-const modal = useModal()
+function openRemoveConfirmModal (person: any) {
+  modal.open(ConfirmModal, {
+    title: 'Remove Actor',
+    message: `Are you sure you want to remove ${person.name} from the crew?`,
+    action: 'Remove',
+    async onAction() {
+      console.log('Removing crew member:', person.id)
+      await executeDelete(person.id, id as string)
+    },
+    onClose () {
+      modal.close()
+    }
+  })
+}
+
+function openAddScheduleModal () {
+  console.log("here")
+  modal.open(AddScheduleModal, {
+    id: id as string,
+    onClose() {
+      modal.close()
+    }
+  })
+}
 
 function openModal (schedule: Schedule) {
 	modal.open(BookingModal, {
@@ -236,9 +319,38 @@ function openModal (schedule: Schedule) {
     }
   })
 }
+
+const {mutate, onDone: onDeletedSchedule} = useMutation(DELETE_SCHEDULE, {
+  refetchQueries: [{query: MOVIE_BYID, variables: {id}}]
+});
+onDeletedSchedule(() => {
+  toast.add({
+    title: "Successful Operation",
+    description: "Successfully deleted schedule!",
+    color: 'green'
+  })
+  console.log("Deleted schedule")
+  modal.close()
+})
+
+function openDeleteScheduleModal (sch: any) {
+  modal.open(ConfirmModal, {
+    title: 'Remove Schedule',
+    message: `Are you sure you want to remove schedule at ${sch.start} ${sch.time} at venue ${sch.hall}?`,
+    action: 'Remove',
+    async onAction() {
+      await mutate({id: sch.id})
+    },
+    onClose () {
+      modal.close()
+    }
+  })
+}
 // Function to book a ticket
-const bookTicket = (schedule: Schedule) => {
+const bookTicket = (schedule: any) => {
 	openModal(schedule)
   console.log('Booking ticket for schedule:', schedule)
 }
+
+const { user } = useUser();
 </script>

@@ -12,6 +12,7 @@
   "dependencies": {
     "@heroicons/vue": "^2.1.5",
     "@nuxt/ui": "^2.18.5",
+    "@nuxtjs/html-validator": "^1.8.2",
     "@popperjs/core": "^2.11.8",
     "@vuepic/vue-datepicker": "^9.0.3",
     "lucide-vue-next": "^0.441.0",

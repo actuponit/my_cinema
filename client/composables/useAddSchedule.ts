@@ -1,16 +1,14 @@
-import { ASSIGN_MOVIE } from "~/graphql/mutations/cast";
-import { CAST_QUERY_BYID } from "~/graphql/queries/casts";
+import { ADD_SCHEDULE } from "~/graphql/mutations/schedule";
 import { MOVIE_BYID } from "~/graphql/queries/movies";
 
-export function useAssignMovie() {
-  const { mutate, loading, onDone } = useMutation(ASSIGN_MOVIE)
+export function useAddSchedule() {
+  const { mutate, loading, onDone } = useMutation(ADD_SCHEDULE)
 
   const executeInsert = async (values: any) => {
     try {
       const response = await mutate({ object: values }, {
         refetchQueries: [
-          {query: CAST_QUERY_BYID, variables: { id: values.cast_id.toString() }},
-          {query: MOVIE_BYID, variables: { id: values.movie_id.toString() }},
+          {query: MOVIE_BYID, variables: { id: values[0].movie.toString() }},
         ]
       });
       console.log('response', response);

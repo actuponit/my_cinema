@@ -134,7 +134,7 @@ const router = useRouter();
     await refetch(where,)
   })
   
-  const {executeDelete, onDone:movieDeleted, loading:deleteLoad} = useCastDeleteMovie(id as string);
+  const {executeDelete, onDone:movieDeleted, loading:deleteLoad} = useCastDeleteMovie();
   movieDeleted(async ()=>{
     toast.add({
       color: 'green',

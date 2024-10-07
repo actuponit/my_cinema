@@ -166,7 +166,7 @@
   {
       title: 'Create Movie',
       icon: VideotapeIcon,
-      link: '/admin/create-movie'
+      link: '/admin/movies/create'
   }]
 
   const toggleSidebar = () => {
