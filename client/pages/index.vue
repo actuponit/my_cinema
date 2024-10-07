@@ -18,10 +18,10 @@
 </template>
   
 <script setup lang="ts">
-import type { MovieHome } from '~/types';
+  import type { MovieHome } from '~/types';
   const movies: MovieHome[] = [
     { id: 1, title: "Inception", releaseDate: new Date("2023-07-15"), genre: "Sci-Fi", thumbnail: "/placeholder.webp", scheduleDate: new Date("2023-07-15"), duration: "2h 28m", price: 10, rating: 4, totalreviews: 50 },
     { id: 2, title: "The Shawshank Redemption", releaseDate: new Date("2023-08-01"), genre: "Drama", thumbnail: "/placeholder.webp", scheduleDate: new Date("2023-08-01"), duration: "2h 22m", price: 10, rating: 5, totalreviews: 100 },
     { id: 3, title: "The Dark Knight", releaseDate: new Date("2023-08-15"), genre: "Action", thumbnail: "/placeholder.webp", scheduleDate: new Date("2023-08-15"), duration: "2h 32m", price: 10, rating: 2, totalreviews: 28 },
   ];
-  </script>
+</script>

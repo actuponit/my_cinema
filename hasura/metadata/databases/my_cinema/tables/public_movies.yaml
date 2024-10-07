@@ -37,6 +37,12 @@ array_relationships:
         table:
           name: schedules
           schema: public
+computed_fields:
+  - name: is_bookmarked
+    definition:
+      function:
+        name: bookmark_movie
+        schema: public
 insert_permissions:
   - role: cinema
     permission:
