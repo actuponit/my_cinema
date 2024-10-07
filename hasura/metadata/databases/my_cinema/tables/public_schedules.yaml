@@ -52,6 +52,7 @@ select_permissions:
         - price
         - start_time
       filter: {}
+      allow_aggregations: true
     comment: ""
   - role: user
     permission:

@@ -19,13 +19,12 @@
 </template>
 
 <script setup>
-    const props = defineProps({
-        currentPage: Number,
-        totalPages: Number,
-    });
+const props = defineProps({
+    currentPage: Number,
+    totalPages: Number,
+});
+const emit = defineEmits(['prevPage', 'nextPage']);
 
-    const emit = defineEmits(['prevPage', 'nextPage']);
-
-    const emitPrevPage = () => emit('prevPage');
-    const emitNextPage = () => emit('nextPage');
+const emitPrevPage = () => emit('prevPage');
+const emitNextPage = () => emit('nextPage');
 </script>

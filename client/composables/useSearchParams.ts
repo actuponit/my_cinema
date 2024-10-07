@@ -6,8 +6,9 @@ export function useSearchParams(queryMap: Map<string, string | Array<string>>) {
   const searchParams = ref(queryMap);
   
   const updateFilters = () => {
-		if (searchParams.value.has('page'))
+		if (searchParams.value.has('page')) {
     	searchParams.value.set('page', '1');
+		}
     updateQueryParams();
   };
   
@@ -76,6 +77,11 @@ export function useSearchParams(queryMap: Map<string, string | Array<string>>) {
   };
 
 	const setSearchParams = (key: string, value: string | string[]) => {
+		if (key === 'page') {
+			searchParams.value.set(key, value);
+			updateQueryParams();
+			return;
+		}
 		searchParams.value.set(key, value);
 		updateFilters();
 	};

@@ -238,7 +238,7 @@ const submitReview = async (event: Event) => {
   // console.log('Submitting review:', event.data)
   event.preventDefault();
   const {user} = useUser();
-  if (!(user.value && user.value.id)) {
+  if (!(user.value && user.value?.id)) {
     toast.add({
       title: "Not logged in",
       description: "You need to login to be able to give reviews",
@@ -246,12 +246,11 @@ const submitReview = async (event: Event) => {
     })
     return
   }
-  console.log("ID: ", user.value.id)
   const values = {
     rating: rating.value,
     feedback: comment.value,
     movie: id,
-    user: user.value.id
+    user: user.value?.id
   }
   await executeInsert(values)
 }

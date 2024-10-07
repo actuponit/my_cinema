@@ -35,9 +35,10 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
+        - feedback
         - movie
-        - user
         - rating
+        - user
       filter: {}
     comment: ""
   - role: cinema

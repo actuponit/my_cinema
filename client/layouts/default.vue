@@ -161,7 +161,7 @@
   {
       title: 'Schedules',
       icon: TimerIcon,
-      link: '/admin/actors'
+      link: '/admin/schedules'
   },
   {
       title: 'Create Movie',
