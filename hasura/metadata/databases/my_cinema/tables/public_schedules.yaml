@@ -41,6 +41,7 @@ select_permissions:
         - price
         - start_time
       filter: {}
+      allow_aggregations: true
     comment: ""
   - role: cinema
     permission:
@@ -64,6 +65,7 @@ select_permissions:
         - price
         - start_time
       filter: {}
+      allow_aggregations: true
     comment: ""
 update_permissions:
   - role: cinema

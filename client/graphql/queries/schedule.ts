@@ -1,12 +1,12 @@
 
 export const SCHEDULES_QURY = gql`
-query MyQuery($where: schedules_bool_exp, $offset: Int!) {
+query MyQuery($where: schedules_bool_exp, $offset: Int!, $limit: Int!) {
   schedules_aggregate(where: $where) {
     aggregate {
       count
     }
   }
-  schedules(limit: 3, offset: $offset, where: $where, order_by: {start_time: desc_nulls_last}) {
+  schedules(limit: $limit, offset: $offset, where: $where, order_by: {start_time: asc_nulls_last}) {
     format
     hall
     id
@@ -14,6 +14,7 @@ query MyQuery($where: schedules_bool_exp, $offset: Int!) {
     start_time
     movieByMovie {
       title
+      featured_image
     }
   }
 }

@@ -1,7 +1,7 @@
 <template>
     <div class="group relative cursor-pointer overflow-hidden rounded-lg shadow-lg transition-transform duration-300 ease-in-out hover:scale-105 h-[300px]">
       <div 
-        class="absolute inset-0 bg-contain bg-center h-full"
+        class="absolute inset-0 bg-cover h-full"
         :style="{ backgroundImage: `url(${props.movie.thumbnail})` }"
       >
         <div class="absolute inset-0 bg-black-950 bg-opacity-40 transition-opacity duration-300 group-hover:bg-opacity-30"></div>
@@ -33,7 +33,8 @@
   
   <script setup lang="ts">
   import { CalendarIcon, TimerIcon } from 'lucide-vue-next';
-  import type { Movie, MovieHome } from '~/types';
+  import type { MovieHome } from '~/types';
+  import type { Movie } from '~/types/movie';
   
   const props = defineProps({
     movie: {

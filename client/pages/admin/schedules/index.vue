@@ -68,9 +68,11 @@ import { XIcon } from 'lucide-vue-next';
 import { SCHEDULES_QURY } from '~/graphql/queries/schedule';
 import { formats, halls } from '~/constants';
 import { DELETE_SCHEDULE } from '~/graphql/mutations/schedule';
-import type { offset } from '@popperjs/core';
 // 
-const { result, loading, refetch } = useQuery<{schedules_aggregate: {aggregate: {count: number}}, schedules: Schedule[]}>(SCHEDULES_QURY, { offset: 0 }, {debounce: 500});
+
+const limit = 3;
+
+const { result, loading, refetch } = useQuery<{schedules_aggregate: {aggregate: {count: number}}, schedules: Schedule[]}>(SCHEDULES_QURY, { offset: 0, limit }, {debounce: 500});
 console.log("resul", result.value)
 const rschedules = computed(() => result.value?.schedules.map((s:any) => ({
   id: s.id,
@@ -108,8 +110,6 @@ const {
   hasActiveFilters
 } = useSearchParams(filtersmp);
 const movie = computed(() => (searchParams.value.get('movie') as string) || '')
-
-const limit = 3;
 
 const totalPage = computed(() => result.value?.schedules_aggregate.aggregate.count || 0);
 
