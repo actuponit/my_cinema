@@ -25,11 +25,8 @@
                       <ul class="mt-2 space-y-1">
                         <li v-for="(time, timeIndex) in movie.showtimes" :key="timeIndex"
                           class="text-gray-400 flex justify-between items-center border-b-gray-700 border-b-2 py-1">
-                          {{ time }}
-                          <button
-                            class="mt-6 px-4 py-1 bg-gray-700 text-white  font-semibold rounded hover:bg-opacity-90 transition duration-300">
-                            Book Now
-                          </button>
+                          {{ formatDateFull(time.start_time) }}
+                          <UButton size="sm" @click="bookTicket(time)">Book Now</UButton>
                         </li>
                       </ul>
                     </div>
@@ -67,6 +64,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { HOME_QUERY } from '~/graphql/queries/home';
+import BookingModal from './BookingModal.vue';
 
 const today = new Date();
 const nextweek = new Date(today);
@@ -75,8 +73,21 @@ const { result, loading, refetch } = useQuery(HOME_QUERY, { gte: today.toISOStri
 await refetch();
 const currentSlide = ref(0);
 
+const modal = useModal();
+function openModal (schedule: any) {
+	modal.open(BookingModal, {
+    movieDetails: schedule,
+    onClose () {
+      modal.close()
+    }
+  })
+}
+
+const bookTicket = (schedule: any) => {
+  console.log("schedule", schedule)
+	openModal({start: formatDateShort(schedule.start_time), id: schedule.id, time: formatTime(schedule.start_time), hall: schedule.hall, format: cinemaFormatReverse(schedule.format), price: schedule.price})
+}
 const movies = computed(() => {
-  console.log("result hfashdfahfd", result.value)
   return result.value?.movies.map((s: any) => ({
     title: s.title,
     genre: s.genre,
@@ -84,7 +95,7 @@ const movies = computed(() => {
     reviews: s.total_rating,
     description: s.description,
     image: displayImage(s.featured_image),
-    showtimes: s.schedules.map((showtime: any) => formatDateFull(showtime.start_time)),
+    showtimes: s.schedules,
   })) || [];
 });
 console.log("movies", movies.value)

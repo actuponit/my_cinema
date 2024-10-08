@@ -351,7 +351,6 @@ function openDeleteScheduleModal (sch: any) {
 // Function to book a ticket
 const bookTicket = (schedule: any) => {
 	openModal(schedule)
-  console.log('Booking ticket for schedule:', schedule)
 }
 
 const {executeInsert:bookmark, onDone:bookmarked, loading:bookmarking} = useBookMark();

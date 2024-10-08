@@ -11,6 +11,7 @@ query MyQuery($lte: timestamptz!, $gte: timestamptz!) {
     average_rating
     schedules(where: {start_time: {_lte: $lte, _gte: $gte}}) {
       start_time
+      id
       hall
       format
       price

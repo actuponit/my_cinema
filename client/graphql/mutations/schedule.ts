@@ -17,3 +17,10 @@ mutation MyMutation($id: Int!) {
   }
 }
 `
+export const BOOK_TICKET = gql`
+mutation MyMutation($object: tickets_insert_input!) {
+  insert_tickets_one(object: $object) {
+    id
+  }
+}
+`

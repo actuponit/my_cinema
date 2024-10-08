@@ -60,7 +60,7 @@
           <UButton color="gray" variant="outline" @click="closeModal">
             Cancel
           </UButton>
-          <UButton color="primary" :disabled="!isValid">
+          <UButton color="primary" :disabled="!isValid" :loading="loading" @click="bookTickets">
             Book Tickets
           </UButton>
         </div> 
@@ -78,7 +78,6 @@
       required: true
     }
   })
-  console.log('Schedule', props.movieDetails)
 
   const emit = defineEmits(['close'])
 
@@ -89,10 +88,27 @@
   const closeModal = () => {
     emit('close')
   }
+  const {executeInsert, onDone, loading} = useBookTicket();
+  onDone(() => {
+    useToast().add({
+      title: "Tickets Booked",
+      description: "Tickets have been successfully booked",
+      color: "green"
+    })
+    closeModal()
+  })
 
-  const bookTickets = () => {
-    if (isValid.value) {
-      closeModal()
+  const {user} = useUser();
+  const bookTickets = async () => {
+    console.log('Book Tickets', ticketCount.value, props.movieDetails)
+    if (isValid.value && user.value) {
+      await executeInsert({schedule_id: props.movieDetails.id, quantity: ticketCount.value, user_id: user.value.id})
+    } else {
+      useToast().add({
+        title: "Error",
+        description: "You need to login to book tickets",
+        color: "red"
+      })
     }
   }
 </script>
