@@ -73,7 +73,10 @@ select_permissions:
         - featured_image
         - genre
         - title
+      computed_fields:
+        - is_bookmarked
       filter: {}
+      allow_aggregations: true
     comment: ""
   - role: cinema
     permission:
@@ -88,6 +91,8 @@ select_permissions:
         - featured_image
         - genre
         - title
+      computed_fields:
+        - is_bookmarked
       filter: {}
       allow_aggregations: true
     comment: ""
@@ -104,7 +109,10 @@ select_permissions:
         - featured_image
         - genre
         - title
+      computed_fields:
+        - is_bookmarked
       filter: {}
+      allow_aggregations: true
     comment: ""
 update_permissions:
   - role: cinema

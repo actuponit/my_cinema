@@ -109,7 +109,6 @@ const {
   setSearchParams,
   hasActiveFilters
 } = useSearchParams(filtersmp);
-const movie = computed(() => (searchParams.value.get('movie') as string) || '')
 
 const totalPage = computed(() => result.value?.schedules_aggregate.aggregate.count || 0);
 
@@ -183,9 +182,9 @@ watch(() => searchParams, async () => {
   const offset = (currentPage.value-1) * limit;
 
   if (where._or.length > 0) {
-    await refetch({ where, offset });
+    await refetch({ where, offset, limit });
   } else {
-    await refetch({ where: {}, offset});
+    await refetch({ where: {}, offset, limit });
   }
 }, {deep: true})
 

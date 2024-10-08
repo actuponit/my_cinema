@@ -57,3 +57,22 @@ query MyQuery($id: Int!) {
   }
 }
 `
+
+export const MOVIES_QUERY = gql`
+query MyQuery($where: movies_bool_exp, $offset: Int!) {
+  movies(where: $where, limit: 10, offset: $offset) {
+    average_rating
+    duration
+    featured_image
+    genre
+    id
+    published_at
+    title
+  }
+  movies_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+` 

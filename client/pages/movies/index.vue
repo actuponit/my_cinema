@@ -7,7 +7,7 @@
         <input
 					:value="searchParams.get('search') || ''"
           type="text"
-          placeholder="Search movies, directors, or actors..."
+          placeholder="Search by titles, directors..."
           class="w-full p-2 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-lg"
 						@input="(e) => setSearchParams('search', (e.target as HTMLInputElement).value)"
         />
@@ -116,38 +116,35 @@
       </div>
   
       <!-- Pagination -->
-      <div class="flex justify-center items-center space-x-4">
-        <button
-          @click="prevPage"
-          :disabled="currentPage === 1"
-          class="px-3 py-1 bg-primary text-white rounded-md disabled:opacity-50 hover:bg-opacity-80 transition-colors duration-200"
-        >
-          Previous
-        </button>
-        <span class="text-lg">Page {{ currentPage }} of {{ totalPages }}</span>
-        <button
-          @click="nextPage"
-          :disabled="currentPage === totalPages"
-          class="px-3 py-1 bg-primary text-white rounded-md disabled:opacity-50 hover:bg-opacity-80 transition-colors duration-200"
-        >
-          Next
-        </button>
-      </div>
+      <Pagination :current-page="currentPage"  :total-pages="Math.ceil(totalPage/limit)" @prev-page="prevPage" @next-page="nextPage"/>
+  
     </div>
   </template>
   
   <script setup lang="ts">
   import { XIcon } from 'lucide-vue-next';
-	import { ref, computed, } from 'vue';
-import type { Movie } from '~/types';
+  import { MOVIES_QUERY } from '~/graphql/queries/movies';
+  import type { Movie } from '~/types/movie';
 	
-	const movies: Movie[] = [
-        { id: 1, title: "Inception", releaseDate: new Date("2023-07-15"), genre: "Sci-Fi", thumbnail: "/placeholder.webp", duration: "2h 28m",rating: 4, totalreviews: 50 },
-        { id: 2, title: "The Shawshank Redemption", releaseDate: new Date("2023-08-01"), genre: "Drama", thumbnail: "/placeholder.webp", duration: "2h 22m", rating: 5, totalreviews: 100 },
-        { id: 3, title: "The Dark Knight", releaseDate: new Date("2023-08-15"), genre: "Action", thumbnail: "/placeholder.webp", duration: "2h 32m", rating: 2, totalreviews: 28 },
-    ]
-
-  const currentPage = ref(1);
+  const {result, loading, refetch} = useQuery(MOVIES_QUERY, {where: {}, offset: 0})
+  const totalPage = computed(()=>result.value?.movies_aggregate.aggregate.count || 1)
+  console.log("total page", totalPage.value)
+  const movies = computed(() => {
+    return result.value.movies.map((movie: Movie) => {
+      const duration = secondToString(movie.duration || 0)
+      return {
+        id: movie.id,
+        title: movie.title,
+        releaseDate: formatDateShort(movie.published_at || ''),
+        thumbnail: displayImage(movie.featured_image),
+        genre: movie.genre?.toLocaleUpperCase(),
+        duration: `${duration.hours}H ${duration.minutes}M`,
+        rating: movie.average_rating, 
+      }
+    });
+  })
+  
+  const currentPage = computed(() => searchParams.value.get('page') ? parseInt(searchParams.value.get('page') as string) : 1);
   const queryMap = new Map();
 
 	queryMap.set('search', '');
@@ -171,7 +168,7 @@ import type { Movie } from '~/types';
   
   const filteredMovies = movies
   
-  const totalPages = 1;
+  const limit = 10;
 	
   const hasActiveFilters = computed(() => {
 		for (const [key, value] of searchParams.value) {
@@ -225,21 +222,46 @@ import type { Movie } from '~/types';
     setSearchParams('actors', actors);
   };
 
-	const prevPage = () => {
-    if (currentPage.value > 1) {
-			const page = parseInt((searchParams.value.get('page') as string));
-      if (page)
-				setSearchParams('page', page - 1 + '');
+	const prevPage = async () => {
+  if (currentPage.value > 1) {
+    const page = parseInt((searchParams.value.get('page') as string));
+    if (page) {
+      setSearchParams('page', page - 1 + '');
+    }
     }
   };
-  
-  const nextPage = () => {
-    if (currentPage.value < totalPages) {
-			const page = parseInt((searchParams.value.get('page') as string));
-			if (page)
-      	setSearchParams('page', page + 1 + '');
+
+  const nextPage = async () => {
+    const page = parseInt(searchParams.value.get('page') as string);
+    if ((page) * limit < totalPage.value) {
+      setSearchParams('page', (page + 1).toString());
     }
   };
+
   
+  watch(() => searchParams, async () => {
+  const where = {_and: <any>[]};
+  searchParams.value.forEach((value, key) => {
+    if (key === 'page') return;
+    if (value.length > 0) {
+      if (key === 'search') {
+        where._and.push({_or: [{title: {_ilike: `%${value}%`}}, {my_director: {first_name: {_ilike: `%${value}%`}}}, {my_director: {last_name: {_ilike: `%${value}%`}}}]})
+      } else if (key === 'year') {
+        let date = new Date();
+        date.setFullYear(parseInt(value as string), 0, 1);
+        let nextYear = new Date();
+        nextYear.setFullYear(parseInt(value as string) + 1, 0, 1);
+        where._and.push({published_at: {_gte: date, _lt: nextYear}})
+      } else if (key === 'rating') {
+        where._and.push({average_rating: {_gte: parseInt(value as string)}})
+      } else if (key === 'categories') {
+        let v = (value as string[]).map((v) => v.toLocaleLowerCase());
+        where._and.push({genre: {_in: v}})
+      }
+    }
+  });
+  const offset = (currentPage.value-1) * limit;
+  await refetch({where, offset})
+}, {deep: true})
 </script>
   
