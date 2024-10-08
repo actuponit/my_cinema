@@ -59,3 +59,12 @@ mutation MyMutation($objects: [movie_thumbnails_insert_input!]!) {
   }
 }
 `
+
+export const BOOKMARK_MOVIE = gql`
+mutation MyMutation($object: bookmarks_insert_input!) {
+  insert_bookmarks_one(object: $object) {
+    movie_id
+    user
+  }
+}
+`

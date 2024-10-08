@@ -36,5 +36,6 @@ export type Movie = {
   ratings?: Rating[];
   title?: string;
   total_rating?: number;
+  is_bookmarked?: boolean;
   schedules?: Schedule[];
 };

@@ -111,6 +111,7 @@ const router = useRouter();
   const { result, loading, refetch } = useQuery<{ movies: CastMovie[] }>(CAST_QUERY_MOVIE, { where }, )
 
   const search = async (arg: string) =>{
+    console.log(arg)
     await refetch({ where: {_and: {title: {_ilike: `%${arg}%`}, _not: {crews: {cast_id: {_eq: id}}}}}})
     if (result.value?.movies) {
       return result.value.movies.map(res => ({ id: res.id, title: res.title }))

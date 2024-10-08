@@ -13,6 +13,7 @@ query MyQuery($where: schedules_bool_exp, $offset: Int!, $limit: Int!) {
     price
     start_time
     movieByMovie {
+      id
       title
       featured_image
     }

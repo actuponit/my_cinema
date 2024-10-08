@@ -9,7 +9,7 @@ export const MOVIE_CASTS = gql`
 `
 
 export const MOVIE_BYID = gql`
-query MyQuery($id: Int!) {
+query MyQuery($id: Int!, $user_id: Int) {
   movies_by_pk(id: $id) {
     average_rating
     description
@@ -17,6 +17,7 @@ query MyQuery($id: Int!) {
     featured_image
     genre
     id
+    is_bookmarked(args: {user_id: $user_id})
     crews {
       cast {
         first_name

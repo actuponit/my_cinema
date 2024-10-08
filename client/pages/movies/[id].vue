@@ -38,7 +38,7 @@
 						<div class="flex justify-between item-center">
 							<h1 class="text-3xl font-bold text-white mb-2">{{ movie.title }}</h1>
 
-							<UButton v-if="user?.role !== 'cinema'" size="lg" variant="ghost" icon="i-heroicons-bookmark" label="Bookmark"/>
+							<UButton v-if="user?.role !== 'cinema'" size="lg" variant="ghost" :icon="movie.is_bookmarked?'i-heroicons-bookmark-solid':'i-heroicons-bookmark'" :label="movie.is_bookmarked?'Bookmarked':'Bookmark'" @click="onBookMark"/>
               <div v-if="user?.role === 'cinema'">
                 <UButton size="lg" variant="ghost" icon="i-heroicons-pencil" label="Edit" @click="onEdit"/>
                 <UButton size="lg" color="red" variant="ghost" icon="i-heroicons-trash" label="Delete"/>
@@ -64,7 +64,7 @@
         <div class="p-6 border-t border-gray-700 w-[calc(100vw-20rem)] overflow-x-scroll">
           <div class="flex w-full items-center">
             <h2 class="text-2xl flex-1 font-bold text-white mb-4">Cast and Crew</h2>
-            <UButton size="sm" variant="link" color="primary" class="flex-shrink-0" @click="openChangeDirectorModal">Change director</UButton>
+            <UButton v-if="user?.role === 'cinema'" size="sm" variant="link" color="primary" class="flex-shrink-0" @click="openChangeDirectorModal">Change director</UButton>
           </div>
           <div class="flex gap-8 flex-nowrap">
             <div v-for="person in movie.castAndCrew" :key="person.id" class="text-center min-w-fit relative">
@@ -145,10 +145,12 @@ import type { Movie, Schedule } from '~/types/movie';
 const id = useRoute().params.id
 const modal = useModal()
 const toast = useToast();
+const { user } = useUser();
 
 // Mock data for the movie
-const { result, loading } = useQuery<{movies_by_pk: Movie}>(MOVIE_BYID, { id });
-
+const variables = computed(() => (user.value && user.value.role === 'cinema')?({id}):({id, user_id: user.value?.id}))
+const { result, loading } = useQuery<{movies_by_pk: Movie}>(MOVIE_BYID, variables);
+console.log(result.value)
 const onEdit = () => {
   useRouter().push('/admin/movies/create/'+(id as string))
 }
@@ -208,6 +210,7 @@ const movie = computed(() => ({
   castAndCrew: castAndCrew.value,
   reviews: reviews.value,
   schedules: schedules.value,
+  is_bookmarked: result.value?.movies_by_pk.is_bookmarked || false
 }))
 
 // Form state for adding a review
@@ -351,5 +354,27 @@ const bookTicket = (schedule: any) => {
   console.log('Booking ticket for schedule:', schedule)
 }
 
-const { user } = useUser();
+const {executeInsert:bookmark, onDone:bookmarked, loading:bookmarking} = useBookMark();
+
+bookmarked(() => {
+  toast.add({
+    title: "Succesfull operation",
+    description: "Successfully added movie to your bookmarks",
+    color: "green"
+  });
+})
+const onBookMark = async () => {
+  if (!user.value) {
+    toast.add({
+      title: "Can't bookmark",
+      description: "You need to login to bookmark movies",
+      color: "red"
+    });
+    return
+  }
+  await bookmark({
+    movie_id: id,
+    user: user.value.id
+  })
+}
 </script>

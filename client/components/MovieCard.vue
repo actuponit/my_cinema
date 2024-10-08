@@ -1,5 +1,5 @@
 <template>
-    <div class="group relative cursor-pointer overflow-hidden rounded-lg shadow-lg transition-transform duration-300 ease-in-out hover:scale-105 h-[300px]">
+    <div @click="onClicked" class="group relative cursor-pointer overflow-hidden rounded-lg shadow-lg transition-transform duration-300 ease-in-out hover:scale-105 h-[300px]">
       <div 
         class="absolute inset-0 bg-cover h-full"
         :style="{ backgroundImage: `url(${props.movie.thumbnail})` }"
@@ -46,4 +46,8 @@
       dfault: 'movie'
     },
   });
+
+  const onClicked = () => {
+    useRouter().push('/movies/'+props.movie.id);
+  }
 </script>

@@ -35,6 +35,7 @@
           <div>
             <div v-for="(section, index) in mainSections" :key="index" class="mb-4">
               <NuxtLink :to="section.link"
+                active-class="text-primary"
                 @click="console.log"
                 :class="['flex items-center w-full px-4 py-2 text-left text-gray-400 hover:bg-gray-700 hover:text-gray-100 focus:outline-none', isOpen?'justify-between':'justify-center']"
               >
