@@ -17,6 +17,11 @@ query MyQuery($where: schedules_bool_exp, $offset: Int!, $limit: Int!) {
       title
       featured_image
     }
+    tickets_aggregate {
+      aggregate {
+        count
+      }
+    }
   }
 }
 `
@@ -32,6 +37,7 @@ query MyQuery($id: Int!) {
     price
     start_time
     tickets {
+      id
       quantity
       created_at
       user {

@@ -46,8 +46,8 @@
       <UTable class="w-full" :rows="rschedules" :loading="loading" :columns="columns">
           <template #actions-data="{ row }">
               <div class="flex space-x-2 justify-around">
-                <UButton @click="viewTickets(row.id)" variant="link">
-                  View Tickets
+                <UButton @click="viewTickets(row.id, row.tickets)" variant="link">
+                  {{ row.tickets > 0 ? `View Tickets (${row.tickets})` : 'No Tickets' }}
                 </UButton>
                 <button @click="openModal(row)" class="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800">
                   Delete
@@ -82,6 +82,7 @@ const rschedules = computed(() => result.value?.schedules.map((s:any) => ({
   hall: s.hall,
   format: cinemaFormatReverse(s.format),
   price: s.price,
+  tickets: s.tickets_aggregate.aggregate.count || 0
 })) || [])
 
 // const  schedules = ref<Schedule[]>(result.value?.schedules_aggregate.node || [])
@@ -204,8 +205,9 @@ const nextPage = async () => {
   }
 };
 
-const viewTickets = (scheduleId: number) => {
-  useRouter().push(`/admin/schedules/${scheduleId}/tickets`)
+const viewTickets = (scheduleId: number, tickets: number) => {
+  if (tickets > 0)
+    useRouter().push(`/admin/schedules/${scheduleId}/tickets`)
   console.log("Viewing tickets for schedule:", scheduleId)
 }
 

@@ -32,6 +32,7 @@ select_permissions:
         - updated_at
         - id
       filter: {}
+      allow_aggregations: true
     comment: ""
   - role: user
     permission:
