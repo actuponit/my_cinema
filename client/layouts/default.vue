@@ -184,6 +184,7 @@ name.value = user.value?.first_name + " " + user.value?.last_name;
 email.value = user.value?.email;
 role.value = user.value?.role;
 if (role.value === 'cinema') {
+  mainSections.value.pop()
   mainSections.value = [...mainSections.value, ...admin]
 }
 </script>

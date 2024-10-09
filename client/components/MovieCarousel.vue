@@ -87,6 +87,7 @@ const bookTicket = (schedule: any) => {
   console.log("schedule", schedule)
 	openModal({start: formatDateShort(schedule.start_time), id: schedule.id, time: formatTime(schedule.start_time), hall: schedule.hall, format: cinemaFormatReverse(schedule.format), price: schedule.price})
 }
+
 const movies = computed(() => {
   return result.value?.movies.map((s: any) => ({
     title: s.title,

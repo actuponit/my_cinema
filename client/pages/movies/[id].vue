@@ -90,7 +90,7 @@
             <div v-for="review in reviews" :key="review.id" class="bg-gray-700 p-4 rounded-lg">
               <div class="flex items-center mb-2 w-full justify-between">
                 <span class="font-semibold text-white">{{ review.userName }}</span>
-                <StarRating :initial-rating="movie.rating" :read-only="true"/>
+                <StarRating :initial-rating="review.rating" :read-only="true"/>
               </div>
               <p class="text-gray-300">{{ review.comment }}</p>
             </div>

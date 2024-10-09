@@ -84,3 +84,11 @@ export const EDIT_REVIEW = gql`
     }
   }
 `;
+
+export const DELETE_REVIEW = gql`
+  mutation MyMutation($_eq: Int!) {
+    delete_ratings(where: {movie: {_eq: $_eq}}) {
+      affected_rows
+    }
+  }
+`;
