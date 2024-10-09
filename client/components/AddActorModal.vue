@@ -9,7 +9,7 @@
           <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" @click="closeModal" />
         </div>
       </template>
-      <p class="mb-3">Please selec an actor:</p>
+      <p class="mb-3">Please select an actor:</p>
       <USelectMenu 
         v-model="actors"
         name="actors"

@@ -40,8 +40,10 @@
         <!-- Actors Filter -->
         <div class="w-72 md:ml-auto">
           <label for="actors" class="bloc text-sm">Filter by actors</label>
-          <UInputMenu v-on:update:model-value="toggleActor" :options="topActors" value-attribute=""
-            option-attribute="" />
+          <USelectMenu name="actors" id="actors" :options="acotrsOptions" value-attribute="id" :model-value="actors"
+              option-attribute="name" v-model:query="arg" searchable :loading="loadingActors" :searchableLazy="true"
+              @update:model-value="setSearchParams('actors', $event)" multiple
+              :debounce="400" />
         </div>
       </div>
 
@@ -65,8 +67,7 @@
     <div v-if="hasActiveFilters" class="mb-6">
       <div class="flex justify-between">
         <h3 class="text-xl font-semibold mb-2">Active Filters</h3>
-        <p @click="resetFilters" class="text-primary mb-4 cursor-pointer hover:underline underline-offset-3">Clear
-          Filters</p>
+        <p @click="resetFilters" class="text-primary mb-4 cursor-pointer hover:underline underline-offset-3">Clear Filters</p>
       </div>
       <div class="flex flex-wrap gap-2 items-center">
         <button v-for="filter in activeFilters" :key="filter.type + filter.value"
@@ -106,10 +107,10 @@
 <script setup lang="ts">
 import { XIcon } from 'lucide-vue-next';
 import { genres } from '~/constants';
-import { MOVIES_QUERY } from '~/graphql/queries/movies';
+import { MOVIE_CASTS, MOVIES_QUERY } from '~/graphql/queries/movies';
 import type { Movie } from '~/types/movie';
 
-const { result, loading, refetch } = useQuery(MOVIES_QUERY, { where: {}, offset: 0 })
+const { result, loading, refetch } = useQuery(MOVIES_QUERY, { where: {}, offset: 0 }, {debounce: 400})
 const totalPage = computed(() => result.value?.movies_aggregate.aggregate.count || 1)
 
 const movies = computed(() => {
@@ -144,10 +145,26 @@ const {
   setSearchParams,
 } = useSearchParams(queryMap);
 
-// const categories = ['Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller'];
 const years = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015];
 const ratings = [4, 3, 2, 1];
-const topActors = ['actor1', 'actor2', 'actor3', 'actor4', 'actor5'];
+
+const actors = computed<string[]>(()=>searchParams.value.get('actors') as string[] || []);
+const awhere = { is_director: { _eq: false }, _or: [{ first_name: { _ilike: "%%" } }, { last_name: { _ilike: "%%" } }] }
+const { refetch: refetchActors, loading: loadingActors, result: actorsResult } = useQuery(MOVIE_CASTS, { where: awhere }, { debounce: 400 })
+const arg = ref('')
+const acotrsOptions = ref([])
+
+watch(() => arg, async () => {
+  if (awhere._or && awhere._or[0] && awhere._or[0].first_name)
+    awhere._or[0].first_name._ilike = `%${arg.value}%`
+  if (awhere._or && awhere._or[1] && awhere._or[1].last_name)
+    awhere._or[1].last_name._ilike = `%${arg.value}%`
+  acotrsOptions.value = []
+  await refetchActors({ where: awhere })
+  if (actorsResult.value)
+    acotrsOptions.value = actorsResult.value.casts.map((cast: any) => ({ id: cast.id.toString(), name: `${cast.first_name} ${cast.last_name}` }))
+}, {immediate: true})
+
 
 const filteredMovies = movies
 
@@ -172,7 +189,7 @@ const activeFilters = computed(() => {
         filters.push({ type: key, value: (value as string), label: `${key}: ${value}` });
       else if (key === 'actors' || key === 'categories') {
         for (const v of value) {
-          filters.push({ type: key, value: v, label: `${v}` });
+          filters.push({ type: key, value: v, label: `${key === 'actors'?'actor_id:':''}${v}` });
         }
       } else
         filters.push({ type: key, value: (value as string), label: `${value}` });
@@ -191,18 +208,6 @@ const toggleCategory = (category: string) => {
     categories.splice(index, 1);
   }
   setSearchParams("categories", categories);
-};
-
-const toggleActor = (actor: string) => {
-  const actors = (searchParams.value.get("actors") as string[]);
-  console.log(actors);
-  const index = actors.indexOf(actor);
-  if (index === -1) {
-    actors.push(actor);
-  } else {
-    actors.splice(index, 1);
-  }
-  setSearchParams('actors', actors);
 };
 
 const prevPage = async () => {
@@ -240,6 +245,9 @@ watch(() => searchParams, async () => {
       } else if (key === 'categories') {
         let v = (value as string[]).map((v) => v.toLocaleLowerCase());
         where._and.push({ genre: { _in: v } })
+      } else if (key === 'actors') {
+        let v = (value as string[]).map((v) => ({crews: {cast_id: {_eq: parseInt(v)}}}));
+        where._and.push({_and: v})
       }
     }
   });
