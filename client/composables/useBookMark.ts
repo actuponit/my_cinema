@@ -1,5 +1,5 @@
 import { BOOKMARK_MOVIE } from "~/graphql/mutations/movie";
-import { MOVIE_BYID } from "~/graphql/queries/movies";
+import { BOOKMARKS_QUERY, MOVIE_BYID } from "~/graphql/queries/movies";
 
 export function useBookMark() {
   const { mutate, loading, onDone } = useMutation(BOOKMARK_MOVIE);
@@ -8,7 +8,7 @@ export function useBookMark() {
     try {
       console.log('values', values);
       const response = await mutate({ object: values },  {
-        refetchQueries: [{query: MOVIE_BYID, variables: {id: values.movie_id, user_id: values.user} }]
+        refetchQueries: [{query: MOVIE_BYID, variables: {id: values.movie_id, user_id: values.user}}, {query: BOOKMARKS_QUERY, variables: {movie: {title: 'asc'}}}]
       });
       console.log('response', response);
       

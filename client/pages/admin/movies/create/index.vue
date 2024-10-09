@@ -108,7 +108,7 @@
 
   const dwhere = {is_director: {_eq: true}, _or: [{first_name: {_ilike: "%%"}}, {last_name: {_ilike: "%%"}}]}
   
-  const { refetch:refetchDirectors, loading: loadingDirectors, result: directors, restart } = useQuery(MOVIE_CASTS, {where: dwhere})
+  const { refetch:refetchDirectors, loading: loadingDirectors, result: directors } = useQuery(MOVIE_CASTS, {where: dwhere})
   const searchDirctors = async (arg: string) =>{
     if (dwhere._or && dwhere._or[0] && dwhere._or[0].first_name)
       dwhere._or[0].first_name._ilike = `%${arg}%`

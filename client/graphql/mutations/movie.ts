@@ -68,3 +68,19 @@ mutation MyMutation($object: bookmarks_insert_input!) {
   }
 }
 `
+
+export const DELETE_BOOKMARK_MUTATION = gql`
+mutation MyMutation($movie_id: Int!, $user: Int!) {
+  delete_bookmarks_by_pk(movie_id: $movie_id, user: $user) {
+    movie_id
+  }
+}
+`
+
+export const EDIT_REVIEW = gql`
+mutation MyMutation($id: Int!, $set: ratings_set_input) {
+  update_ratings(where: {movie: {_eq: $id}}, _set: $set) {
+    affected_rows
+  }
+}
+`

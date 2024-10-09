@@ -11,7 +11,7 @@
         />
   
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          <div v-for="movie in sortedBookmarks" :key="movie.id" class="relative">
+          <div v-for="movie in bookmarks" :key="movie.id" class="relative">
             <MovieCard :movie="movie" />
             <UButton
               color="gray"
@@ -49,43 +49,76 @@
   <script setup>
   import { ref, computed } from 'vue'
   import { useRouter } from 'vue-router'
+  import { DELETE_BOOKMARK_MUTATION } from '~/graphql/mutations/movie';
+  import { BOOKMARKS_QUERY, MOVIE_BYID } from '~/graphql/queries/movies';
   
-  // Assume these are fetched from an API or store
-  const bookmarks = ref([
-        { id: 1, title: "Inception", releaseDate: new Date("2023-07-15"), genre: "Sci-Fi", thumbnail: "/placeholder.webp", duration: "2h 28m",rating: 4, totalreviews: 50 },
-        { id: 2, title: "The Shawshank Redemption", releaseDate: new Date("2023-08-01"), genre: "Drama", thumbnail: "/placeholder.webp", duration: "2h 22m", rating: 5, totalreviews: 100 },
-        { id: 3, title: "The Dark Knight", releaseDate: new Date("2023-08-15"), genre: "Action", thumbnail: "/placeholder.webp", duration: "2h 32m", rating: 2, totalreviews: 28 },
-    ])
-  
+  const movie = {title: 'asc'}
+  const { result, refetch } = useQuery(BOOKMARKS_QUERY, { movie })
+  const {user} = useUser();
   const router = useRouter()
   const sortBy = ref('title')
   
   const sortOptions = [
     { label: 'Title', value: 'title' },
-    { label: 'Release Date', value: 'releaseDate' },
-    { label: 'Rating', value: 'rating' },
+    { label: 'Release Date', value: 'published_at' },
+    { label: 'Rating', value: 'average_rating' },
   ]
   
-  const sortedBookmarks = computed(() => {
-    return [...bookmarks.value].sort((a, b) => {
-      if (sortBy.value === 'title') {
-        return a.title.localeCompare(b.title)
-      } else if (sortBy.value === 'releaseDate') {
-        return new Date(b.releaseDate) - new Date(a.releaseDate)
-      } else if (sortBy.value === 'rating') {
-        return b.rating - a.rating
-      }
-      return 0
-    })
+  const bookmarks = computed(() => {
+    return result.value?.bookmarks.map((bookmark) => {
+      const duration = secondToString(bookmark.movie.duration || 0)
+      return {
+        id: bookmark?.movie_id,
+        title: bookmark?.movie?.title,
+        releaseDate: bookmark?.movie?.published_at,
+        genre: bookmark?.movie?.genre.toUpperCase(),
+        thumbnail: displayImage(bookmark?.movie?.featured_image),
+        duration: `${duration.hours}h ${duration.minutes}m`,
+        rating: 0,
+        totalreviews: 0,
+      };
+    }) || []
   })
   
-  const removeBookmark = (id) => {
-    // In a real application, you would call an API to remove the bookmark
-    bookmarks.value = bookmarks.value.filter(movie => movie.id !== id)
+  watch(() => sortBy.value, async () => {
+    if (sortBy.value === 'average_rating') {
+      await refetch({ movie: { [sortBy.value]: 'desc_nulls_last' } })
+      return
+    }
+    await refetch({ movie: { [sortBy.value]: 'asc' } })
+  })
+
+  const { mutate, onDone, loading } = useMutation(DELETE_BOOKMARK_MUTATION, )
+  onDone(() => {
+    toast.add({
+      color: 'green',
+      title: 'Bookmark Removed',
+      description: 'The movie has been removed from your bookmarks'
+    })
+  })
+  const removeBookmark = async (id) => {
+    await mutate({ movie_id: id, user: user.value?.id }, {
+      update(cache) {
+        cache.modify({
+          fields: {
+            bookmarks(existingBookmarks, { readField }) {
+              return existingBookmarks.filter(
+                (bookmarkRef) => id !== readField('movie_id', bookmarkRef)
+              )
+            },
+          }
+        })
+      },
+      refetchQueries: [{ query: MOVIE_BYID, variables: { id: id.toString(), user_id: user.value?.id }}]
+    })
   }
   
   const goToMovies = () => {
     router.push('/movies')
   }
+
+  definePageMeta({
+    middleware: ['must-login'],
+  });
 </script>
   

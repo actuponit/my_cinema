@@ -62,7 +62,7 @@
           <h3 class="text-xl font-semibold">Categories</h3>
           <div class="flex flex-wrap gap-2">
             <button
-              v-for="category in categories"
+              v-for="category in genres"
               :key="category"
               @click="toggleCategory(category)"
               :class="[
@@ -123,12 +123,13 @@
   
   <script setup lang="ts">
   import { XIcon } from 'lucide-vue-next';
+import { genres } from '~/constants';
   import { MOVIES_QUERY } from '~/graphql/queries/movies';
   import type { Movie } from '~/types/movie';
 	
   const {result, loading, refetch} = useQuery(MOVIES_QUERY, {where: {}, offset: 0})
   const totalPage = computed(()=>result.value?.movies_aggregate.aggregate.count || 1)
-  console.log("total page", totalPage.value)
+
   const movies = computed(() => {
     return result.value.movies.map((movie: Movie) => {
       const duration = secondToString(movie.duration || 0)
@@ -161,7 +162,7 @@
 		setSearchParams,
 	} = useSearchParams(queryMap);
   
-	const categories = ['Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller'];
+	// const categories = ['Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller'];
   const years = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015];
   const ratings = [4, 3, 2, 1];
   const topActors = [ 'actor1', 'actor2', 'actor3', 'actor4', 'actor5' ];

@@ -77,3 +77,32 @@ query MyQuery($where: movies_bool_exp, $offset: Int!) {
   }
 }
 ` 
+
+export const BOOKMARKS_QUERY = gql`
+query MyQuery($movie: movies_order_by) {
+  bookmarks(order_by: {movie: $movie}) {
+    movie {
+      title
+      duration
+      featured_image
+      genre
+      published_at
+    }
+    movie_id
+  }
+}
+`
+
+export const MYREVIEWS_QUERY = gql`
+query MyQuery($_eq: Int!) {
+  ratings(where: {user: {_eq: $_eq}}) {
+    feedback
+    rating
+    movieByMovie {
+      id
+      title
+    }
+    updated_at
+  }
+}
+`
