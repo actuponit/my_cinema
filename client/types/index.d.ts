@@ -63,6 +63,7 @@ export type Ticket = {
     boughtAt: Date;
     movieTime: Date;
     isUpcoming: boolean;
+    format: string;
 }
 export type MovieRole = {
     id: number;

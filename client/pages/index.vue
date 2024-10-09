@@ -19,8 +19,6 @@
       </div>
     </div>
     </div>
-    
-    
 </template>
   
 <script setup lang="ts">
@@ -28,7 +26,7 @@
 import { SCHEDULES_QURY } from '../graphql/queries/schedule';
 
   const {result, loading, refetch} = useQuery(SCHEDULES_QURY, {offset: 0, where: {}, limit: 100});
-  const total = computed(() => {result.value?.schedules_aggregate.aggregate.count})
+  const total = computed(() => result.value?.schedules_aggregate.aggregate.count || 0)
   const movies = computed<MovieHome[]>(() => {
     console.log('res', result.value);
     return result.value.schedules.map((schedule: any) => ({id: schedule?.id, title: schedule?.movieByMovie.title, scheduleDate: formatDateShort(schedule?.start_time), price: schedule?.price, thumbnail: displayImage(schedule?.movieByMovie.featured_image), duration: formatTime(schedule?.start_time),}));

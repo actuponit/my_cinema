@@ -14,31 +14,52 @@
   
 <script setup lang="ts">
   import { ref } from 'vue'
+import { TICKET_QUERY } from '~/graphql/queries/tickets';
   import type { Ticket } from '~/types';
   
   // Mock data for booked tickets
-  const tickets = ref<Ticket[]>([{
-      movieTitle: "Inception",
-      hall: "A3",
-      thumbnail: "placeholder.webp",
-      price: 12.99,
-      amount: 2,
-      id: "TKT-12345-6789",
-      boughtAt: new Date("2023-06-15T14:30:00"),
-      movieTime: new Date("2023-06-20T19:00:00"),
-      isUpcoming: true
-    },
-    {
-      movieTitle: "Inception",
-      hall: "A3",
-      thumbnail: "https://example.com/inception-thumbnail.jpg",
-      price: 12.99,
-      amount: 2,
-      id: "TKT-12345-6780",
-      boughtAt: new Date("2023-06-15T14:30:00"),
-      movieTime: new Date("2023-06-20T19:00:00"),
-      isUpcoming: false
-    }
-  ])
-
+  const { result, loading } = useQuery(TICKET_QUERY)
+  const tickets = computed(() => {
+    console.log('tickets', result.value);
+    return result.value?.tickets.map((ticket: any) => {
+      return {
+        movieTitle: ticket?.schedule?.movieByMovie?.title,
+        hall: ticket?.schedule?.hall,
+        thumbnail: displayImage(ticket?.schedule?.movieByMovie?.featured_image),
+        price: ticket?.schedule?.price,
+        amount: ticket?.quantity,
+        id: ticket?.id,
+        boughtAt: ticket?.created_at,
+        movieTime: ticket?.schedule?.start_time,
+        isUpcoming: new Date(ticket?.schedule?.start_time) > new Date(),
+        format: cinemaFormatReverse(ticket?.schedule?.format)
+      }
+    }) || []
+  })
+  // const tickets = ref<Ticket[]>([{
+  //     movieTitle: "Inception",
+  //     hall: "A3",
+  //     thumbnail: "placeholder.webp",
+  //     price: 12.99,
+  //     amount: 2,
+  //     id: "TKT-12345-6789",
+  //     boughtAt: new Date("2023-06-15T14:30:00"),
+  //     movieTime: new Date("2023-06-20T19:00:00"),
+  //     isUpcoming: true
+  //   },
+  //   {
+  //     movieTitle: "Inception",
+  //     hall: "A3",
+  //     thumbnail: "https://example.com/inception-thumbnail.jpg",
+  //     price: 12.99,
+  //     amount: 2,
+  //     id: "TKT-12345-6780",
+  //     boughtAt: new Date("2023-06-15T14:30:00"),
+  //     movieTime: new Date("2023-06-20T19:00:00"),
+  //     isUpcoming: false
+  //   }
+  // ])
+  definePageMeta({
+    middleware: ['must-login'],
+  });
 </script>
