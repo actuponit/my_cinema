@@ -9,12 +9,12 @@
           <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" @click="closeModal" />
         </div>
       </template>
-        <UFormGroup label="Rating">
-          <StarRating v-model:rating="rating" :initial-rating="rating"/>
-        </UFormGroup>
-        <UFormGroup label="Feedback" class="mt-8">
-          <UTextarea v-model="feedback"/>
-        </UFormGroup>
+      <UFormGroup label="Rating">
+        <StarRating v-model:rating="rating" :initial-rating="rating" />
+      </UFormGroup>
+      <UFormGroup label="Feedback" class="mt-8">
+        <UTextarea v-model="feedback" />
+      </UFormGroup>
       <template #footer>
         <div class="flex justify-end space-x-3">
           <UButton color="gray" variant="outline" @click="closeModal">
@@ -65,7 +65,7 @@ const onEdit = () => {
     id: props.review.id,
     set
   }, {
-    refetchQueries: [{query: MYREVIEWS_QUERY, variables: {_eq: props.user_id}}]
+    refetchQueries: [{ query: MYREVIEWS_QUERY, variables: { _eq: props.user_id } }]
   })
 }
 

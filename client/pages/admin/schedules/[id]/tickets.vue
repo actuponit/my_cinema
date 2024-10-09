@@ -6,16 +6,17 @@
         </div>
         <div class="flex gap-6">
             <h1 class="text-xl font-bold mb-5 text-gray-400">{{ `Movie: ${schedule.movie}` }}</h1>
-            <h1 class="text-xl font-bold mb-5 text-gray-400">{{ `Schedule: @${schedule.time},  Venue ${schedule.hall},  Format ${schedule.format},  Price ${schedule.price}` }}</h1>
+            <h1 class="text-xl font-bold mb-5 text-gray-400">{{ `Schedule: @${schedule.time}, Venue ${schedule.hall},
+                Format ${schedule.format}, Price ${schedule.price}` }}</h1>
         </div>
-        <UInput placeholder="Search by id or name" v-model="search" class="w-64"/>
-        <UTable class="w-full" :loading="loading" :rows="filteredTickets" :columns="columns"/>
+        <UInput placeholder="Search by id or name" v-model="search" class="w-64" />
+        <UTable class="w-full" :loading="loading" :rows="filteredTickets" :columns="columns" />
     </div>
 </template>
 <script setup lang="ts">
 import { SCHEDULES_QURY_BYID } from '~/graphql/queries/schedule';
 const id = useRoute().params.id;
-const { result, loading } = useQuery(SCHEDULES_QURY_BYID, {id: id});
+const { result, loading } = useQuery(SCHEDULES_QURY_BYID, { id: id });
 
 const mytickets = computed(() => {
     return result.value?.schedules_by_pk.tickets.map((t: any) => ({
@@ -49,12 +50,12 @@ const schedule = computed(() => {
 console.log(schedule.value)
 
 const columns = [
-    {key: "id", label: "ID"},
-    {key: "fullname", label: "Fullname"},
-    {key: "email", label: "Email"},
-    {key: "bookedAt", label: "Booked At"},
-    {key: "quantity", label: "Quantity"},
-    {key: "total", label: "Total Price"},
+    { key: "id", label: "ID" },
+    { key: "fullname", label: "Fullname" },
+    { key: "email", label: "Email" },
+    { key: "bookedAt", label: "Booked At" },
+    { key: "quantity", label: "Quantity" },
+    { key: "total", label: "Total Price" },
 ]
 const router = useRouter()
 const goBack = () => router.back()
