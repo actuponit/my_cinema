@@ -69,8 +69,7 @@ import BookingModal from './BookingModal.vue';
 const today = new Date();
 const nextweek = new Date(today);
 nextweek.setDate(today.getDate() + 7);
-const { result, loading, refetch } = useQuery(HOME_QUERY, { gte: today.toISOString(), lte: nextweek.toISOString() });
-await refetch();
+const { result, loading, } = useQuery(HOME_QUERY, { gte: today.toISOString(), lte: nextweek.toISOString() });
 const currentSlide = ref(0);
 
 const modal = useModal();
@@ -99,7 +98,6 @@ const movies = computed(() => {
     showtimes: s.schedules,
   })) || [];
 });
-console.log("movies", movies.value)
 
 const nextSlide = () => {
   currentSlide.value = (currentSlide.value + 1) % movies.value.length;

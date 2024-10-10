@@ -87,7 +87,7 @@ const rschedules = computed(() => result.value?.schedules.map((s: any) => ({
   hall: s.hall,
   format: cinemaFormatReverse(s.format),
   price: s.price,
-  tickets: s.tickets_aggregate.aggregate.count || 0
+  tickets: s?.tickets_aggregate.aggregate.count || 0
 })) || [])
 
 // const  schedules = ref<Schedule[]>(result.value?.schedules_aggregate.node || [])

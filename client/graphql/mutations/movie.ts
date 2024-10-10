@@ -92,3 +92,11 @@ export const DELETE_REVIEW = gql`
     }
   }
 `;
+
+export const DELTE_MOVIE = gql`
+  mutation MyMutation($id: Int!) {
+    delete_movies_by_pk(id: $id) {
+      id
+    }
+  }
+`;

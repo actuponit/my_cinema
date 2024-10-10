@@ -23,9 +23,9 @@
   
 <script setup lang="ts">
   import type { MovieHome } from '~/types';
-import { SCHEDULES_QURY } from '../graphql/queries/schedule';
+import { SCHEDULES_QURYH } from '../graphql/queries/schedule';
 
-  const {result, loading, refetch} = useQuery(SCHEDULES_QURY, {offset: 0, where: {}, limit: 100});
+  const {result, loading, refetch} = useQuery(SCHEDULES_QURYH, {offset: 0, where: {}, limit: 100});
   const total = computed(() => result.value?.schedules_aggregate.aggregate.count || 0)
   const movies = computed<MovieHome[]>(() => {
     console.log('res', result.value);

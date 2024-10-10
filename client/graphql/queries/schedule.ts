@@ -30,6 +30,33 @@ export const SCHEDULES_QURY = gql`
   }
 `;
 
+export const SCHEDULES_QURYH = gql`
+  query MyQuery($where: schedules_bool_exp, $offset: Int!, $limit: Int!) {
+    schedules_aggregate(where: $where) {
+      aggregate {
+        count
+      }
+    }
+    schedules(
+      limit: $limit
+      offset: $offset
+      where: $where
+      order_by: { start_time: asc_nulls_last }
+    ) {
+      format
+      hall
+      id
+      price
+      start_time
+      movieByMovie {
+        id
+        title
+        featured_image
+      }
+    }
+  }
+`;
+
 export const SCHEDULES_QURY_BYID = gql`
   query MyQuery($id: Int!) {
     schedules_by_pk(id: $id) {

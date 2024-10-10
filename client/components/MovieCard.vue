@@ -9,7 +9,7 @@
       <div class="relative flex h-full flex-col justify-end p-2">
         <div class="space-y-2 relative px-1 group-hover:backdrop-blur-lg group-hover:bg-black-950 group-hover:bg-opacity-40">
           <h3 class="text-2xl font-bold text-white px-3">{{ props.movie.title }}</h3>
-          <div class="flex items-center justify-between space-x-2 text-sm text-gray-200">
+          <div class="flex items-center justify-between space-x-2 text-sm text-gray-200 p-1">
             <span class="flex items-center">
               <CalendarIcon class="w-4 h-4 pr-1"/>
               <p v-if="props.type === 'home'">{{ formatDateShort((props.movie as MovieHome).scheduleDate) }}</p>

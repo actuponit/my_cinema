@@ -1,6 +1,5 @@
-import { BOOKMARK_MOVIE } from "~/graphql/mutations/movie";
 import { BOOK_TICKET } from "~/graphql/mutations/schedule";
-import { MOVIE_BYID } from "~/graphql/queries/movies";
+import { TICKET_QUERY } from "~/graphql/queries/tickets";
 
 export function useBookTicket() {
   const { mutate, loading, onDone } = useMutation(BOOK_TICKET);
@@ -8,10 +7,8 @@ export function useBookTicket() {
   const executeInsert = async (values: any) => {
     try {
       console.log('values', values);
-      const response = await mutate({ object: values });
+      const response = await mutate({ object: values }, { refetchQueries: [{ query: TICKET_QUERY  }]});
       console.log('response', response);
-      
-      // return response?.data.login.user;
     } catch (err) {
       throw createError((err as Error).message);
     }

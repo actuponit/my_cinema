@@ -41,7 +41,7 @@
 							<UButton v-if="user?.role !== 'cinema'" size="lg" variant="ghost" :icon="movie.is_bookmarked?'i-heroicons-bookmark-solid':'i-heroicons-bookmark'" :label="movie.is_bookmarked?'Bookmarked':'Bookmark'" @click="onBookMark"/>
               <div v-if="user?.role === 'cinema'">
                 <UButton size="lg" variant="ghost" icon="i-heroicons-pencil" label="Edit" @click="onEdit"/>
-                <UButton size="lg" color="red" variant="ghost" icon="i-heroicons-trash" label="Delete"/>
+                <UButton size="lg" color="red" variant="ghost" icon="i-heroicons-trash" label="Delete" @click="onDeleteMovie"/>
               </div>
 						</div>
             <div class="flex items-center mb-4">
@@ -135,11 +135,13 @@
 
 <script setup lang="ts">
 import { AddScheduleModal, BookingModal } from '#components';
+import { offset } from '@popperjs/core';
 import AddActorModal from '~/components/AddActorModal.vue';
 import ChangeDirectorModal from '~/components/ChangeDirectorModal.vue';
 import ConfirmModal from '~/components/ConfirmModal.vue';
+import { DELTE_MOVIE } from '~/graphql/mutations/movie';
 import { DELETE_SCHEDULE } from '~/graphql/mutations/schedule';
-import { MOVIE_BYID } from '~/graphql/queries/movies';
+import { MOVIE_BYID, MOVIES_QUERY } from '~/graphql/queries/movies';
 import type { Movie, Schedule } from '~/types/movie';
 
 const id = useRoute().params.id
@@ -374,6 +376,34 @@ const onBookMark = async () => {
   await bookmark({
     movie_id: id,
     user: user.value.id
+  })
+}
+
+const {mutate: deleteMovie, onDone: onDeletedMovie} = useMutation(DELTE_MOVIE);
+
+onDeletedMovie(() => {
+  toast.add({
+    title: "Successful Operation",
+    description: "Successfully deleted movie!",
+    color: 'green'
+  })
+  modal.close()
+  useRouter().replace('/movies')
+})
+const onDeleteMovie = () => {
+  console.log("Deleting movie", id)
+  modal.open(ConfirmModal, {
+    title: 'Delete Movie',
+    message: `Are you sure you want to delete this movie?`,
+    action: 'Delete',
+    async onAction() {
+      await deleteMovie({id}, {
+  refetchQueries: [{query: MOVIES_QUERY, variables: { where: {}, offset: 0 }}]
+})
+    },
+    onClose () {
+      modal.close()
+    }
   })
 }
 </script>
