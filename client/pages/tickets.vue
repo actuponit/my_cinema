@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex-1">
+  <div class="min-h-screen flex-1">
     <UContainer class="py-8">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">My Booked Tickets</h1>
 

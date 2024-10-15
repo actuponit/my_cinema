@@ -75,10 +75,10 @@
         </div>
       </nav>
     </div>
+    <!-- Main Content -->
+    <slot></slot>
     <UModals />
     <UNotifications />
-    <!-- Main Content -->
-    <slot />
   </div>
 </template>
 
@@ -107,6 +107,16 @@ const mainSections = ref([
     title: 'Reviews',
     icon: StarIcon,
     link: '/reviews'
+  },
+  {
+    title: 'Charts',
+    icon: VideoIcon,
+    link: '/charts'
+  },
+  {
+    title: 'Charts1',
+    icon: VideoIcon,
+    link: '/charts'
   },
   {
     title: 'Tickets',

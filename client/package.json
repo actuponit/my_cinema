@@ -15,11 +15,13 @@
     "@nuxtjs/html-validator": "^1.8.2",
     "@popperjs/core": "^2.11.8",
     "@vuepic/vue-datepicker": "^9.0.3",
+    "apexcharts": "^3.54.0",
     "lucide-vue-next": "^0.441.0",
     "nuxt": "^3.13.0",
     "vee-validate": "^4.13.2",
     "vue": "latest",
     "vue-router": "latest",
+    "vue3-apexcharts": "^1.7.0",
     "yup": "^1.4.0"
   },
   "devDependencies": {
