@@ -65,14 +65,20 @@
   ]
 
   const values = ref<any[]>([])
-  const {data, status, error} = useFetch<{recipes: any[]}>('https://dummyjson.com/recipes?limit=2&select=name', {
-    pick: ['recipes'],
-    cache: 'no-cache'
-  });
-  const init = computed(() => {
-    console.log("Data is: ", data.value?.recipes)
-    return data.value?.recipes
-  })
+  // const {data, status, error} = useFetch<{recipes: any[]}>('https://dummyjson.com/recipes?limit=2&select=name', {
+  //   pick: ['recipes'],
+  //   cache: 'no-cache'
+  // });
+  // const init = computed(() => {
+  //   console.log("Data is: ", data.value?.recipes)
+  //   return data.value?.recipes
+  // })
+  const init = ref()
+  console.log("BEFORE ONE SECOND", init.value)
+  setTimeout(() => {
+    init.value = [{id: 1, name: 'Classic Margherita Pizza'}]
+    console.log("AFTER ONE SECOND", init.value)
+  }, 1000);
   const { result } = useQuery(CHART_QUERY, {}, {
     fetchPolicy: 'no-cache'
   });

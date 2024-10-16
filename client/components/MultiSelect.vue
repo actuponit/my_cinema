@@ -145,6 +145,7 @@
   });
 
   watch(() => props.init, () => {
+    console.log("PROPS INSIDE", props.init)
     if (props.init && props.init[0]) {
       chips.value = [
         ...new Map(props.init.map((item) => [item[props.value], item])).values(),
