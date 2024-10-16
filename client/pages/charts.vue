@@ -1,8 +1,17 @@
 <template>
     <div class="min-h-screen py-6 flex flex-col justify-center sm:py-12 flex-1">
-      <div class="relative py-3 w-full mx-3">
+      <div class="relative py-3 w-full px-3">
+        <h1 class="text-3xl font-bold mb-5 text-center text-white">Cinema Ticket Statistics</h1>
+        <MultiSelect 
+          v-model="values" 
+          name="multiselect" 
+          :items="items"
+          show-by="name"
+          :init="init"
+          chips-text-style="break-words whitespace-pre-wrap w-full flex flex-wrap overflow-hidden text-sm text-black-950"
+          multiple
+        />
         <div class="relative py-6 shadow-lg sm:rounded-3xl sm:p-5 w-full">
-          <h1 class="text-3xl font-bold mb-8 text-center text-blue-500">Cinema Ticket Statistics</h1>
           <ClientOnly fallback-tag="span" fallback="Loading ...">
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Daily Tickets Chart -->
@@ -44,13 +53,34 @@
   <script setup lang="ts">
   
   import { CHART_GENRE_QUERY, CHART_QUERY } from '../graphql/queries/chart';
-  // Sample data for daily ticket sales
+  
+  const items = [
+    {id: 1, name: 'Classic Margherita Pizza'},
+    {id: 2, name: 'Vegetarian Stir-Fry'},
+    {id: 3, name: 'Chocolate Chip Cookies'},
+    {id: 4, name: 'Chicken Alfredo Pasta'},
+    {id: 5, name: 'Mango Salsa Chicken'},
+    {id: 6, name: 'Quinoa Salad with Avocado'},
+    {id: 6, name: 'Tomato Basil Bruschetta'},
+  ]
+
+  const values = ref<any[]>([])
+  const {data, status, error} = useFetch<{recipes: any[]}>('https://dummyjson.com/recipes?limit=2&select=name', {
+    pick: ['recipes'],
+    cache: 'no-cache'
+  });
+  const init = computed(() => {
+    console.log("Data is: ", data.value?.recipes)
+    return data.value?.recipes
+  })
   const { result } = useQuery(CHART_QUERY, {}, {
     fetchPolicy: 'no-cache'
   });
-  
+  watch(values, (value) => {
+    console.log("Result is: ", value)
+  })
+
   const dailyData = computed(() => {
-    console.log(result.value)
     return result.value?.tickets_graph.map((item:any) => ({
       date: item.t_date,
       price: item.total_price,
@@ -65,15 +95,8 @@
   
   // Sample data for movie categories
   
-  // const categoryData = ref([
-  //   { category: 'Action', count: 50 },
-  //   { category: 'Comedy', count: 30 },
-  //   { category: 'Drama', count: 20 },
-  //   { category: 'Sci-Fi', count: 25 },
-  //   { category: 'Horror', count: 15 },
-  // ])
   const categoryData = computed(() => {
-    return genra.value.group_movie_by_category.map((item:any) => ({
+    return genra.value?.group_movie_by_category.map((item:any) => ({
       category: item.genre,
       count: item.count
     }))
@@ -136,11 +159,11 @@
       foreColor: "#fff",
     },
 
-    labels: categoryData.value.map((item:any) => item.category),
+    labels: categoryData.value?.map((item:any) => item.category),
   }))
 
   const pieChartSeries = computed(() => 
-    categoryData.value.map((item:any) => item.count)
+    categoryData.value?.map((item:any) => item.count) || []
   )
 </script>
 <style>

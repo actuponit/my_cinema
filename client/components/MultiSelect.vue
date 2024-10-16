@@ -144,25 +144,28 @@
     }
   });
 
-  if (props.init && props.init[0]) {
-    chips.value = [
-      ...new Map(props.init.map((item) => [item[props.value], item])).values(),
-    ];
-    for (const val of chips.value) {
-      selected.value[val[props.value]] = !selected.value[val[props.value]];
+  watch(() => props.init, () => {
+    if (props.init && props.init[0]) {
+      chips.value = [
+        ...new Map(props.init.map((item) => [item[props.value], item])).values(),
+      ];
+      console.log('SELECTED VALUES BEFORE', selected.value)
+      for (const val of chips.value) {
+        selected.value[val[props.value]] = !selected.value[val[props.value]];
+      }
+      console.log('SELECTED VALUES AFTER', selected.value)
+      if (chips.value && chips.value.length) {
+        emit(
+          "update:modelValue",
+          chips.value.map((chip) => chip.id)
+        );
+        emit("update:selectedChips", chips.value);
+      } else {
+        emit("update:modelValue", undefined);
+        emit("update:selectedChips", chips.value);
+      }
     }
-
-    if (chips.value && chips.value.length) {
-      emit(
-        "update:modelValue",
-        chips.value.map((chip) => chip.id)
-      );
-      emit("update:selectedChips", chips.value);
-    } else {
-      emit("update:modelValue", undefined);
-      emit("update:selectedChips", chips.value);
-    }
-  }
+  }, {immediate: true});
 
   const deleteChip = (index) => {
     let id = chips.value[index].id;
@@ -196,7 +199,7 @@
       }
     }
   );
-
+  
   onClickOutside(list_select, (e) => (show.value = false));
 </script>
 
@@ -247,18 +250,11 @@
     <ul
       ref="list_select"
       v-show="show"
-      class="absolute z-10 w-full bg-white dark:bg-gray-700 dark:bg-gray-500 border border-primary shadow min-h-[20rem] max-h-[22rem] rounded-b-md text-base overflow-auto"
+      class="absolute z-10 w-full bg-white dark:bg-gray-700 border border-primary shadow min-h-[20rem] max-h-[22rem] rounded-b-md text-base overflow-auto"
       :class="[listClass || '']"
     >
       <li class="h-1">
-        <h-progress
-          v-if="loading"
-          class="rounded-xl w-full"
-          color1="bg-primary-lite"
-          color2="bg-primary"
-          color3="bg-primary-dark"
-          height="h-1"
-        ></h-progress>
+        <UProgress animation="carousel" v-if="loading" class="rounded-xl w-full"/>  
       </li>
       <li class="px-2 border-b pb-2">
         <input

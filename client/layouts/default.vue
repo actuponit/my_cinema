@@ -114,11 +114,6 @@ const mainSections = ref([
     link: '/charts'
   },
   {
-    title: 'Charts1',
-    icon: VideoIcon,
-    link: '/charts'
-  },
-  {
     title: 'Tickets',
     icon: TicketIcon,
     link: '/tickets'

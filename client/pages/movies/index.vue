@@ -80,7 +80,7 @@
     </div>
 
     <!-- Movies Grid -->
-    <div v-if="filteredMovies.length > 0"
+    <div v-if="movies?.length > 0"
       class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
       <MovieCard v-for="movie in movies" :key="movie.id" :movie="movie" />
     </div>
@@ -114,7 +114,7 @@ const { result, loading, refetch } = useQuery(MOVIES_QUERY, { where: {}, offset:
 const totalPage = computed(() => result.value?.movies_aggregate.aggregate.count || 1)
 
 const movies = computed(() => {
-  return result.value.movies.map((movie: Movie) => {
+  return result.value?.movies.map((movie: Movie) => {
     const duration = secondToString(movie.duration || 0)
     return {
       id: movie.id,
