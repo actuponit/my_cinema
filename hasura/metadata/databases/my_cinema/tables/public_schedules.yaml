@@ -2,12 +2,6 @@ table:
   name: schedules
   schema: public
 object_relationships:
-  - name: formatByFormat
-    using:
-      foreign_key_constraint_on: format
-  - name: hallByHall
-    using:
-      foreign_key_constraint_on: hall
   - name: movieByMovie
     using:
       foreign_key_constraint_on: movie

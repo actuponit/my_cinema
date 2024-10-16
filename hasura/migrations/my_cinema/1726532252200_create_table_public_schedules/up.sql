@@ -1,1 +1,0 @@
-CREATE TABLE "public"."schedules" ("movie" integer NOT NULL, "start_time" timetz NOT NULL, PRIMARY KEY ("movie","start_time") , FOREIGN KEY ("movie") REFERENCES "public"."movies"("id") ON UPDATE cascade ON DELETE cascade);

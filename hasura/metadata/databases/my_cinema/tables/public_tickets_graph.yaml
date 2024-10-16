@@ -1,0 +1,28 @@
+table:
+  name: tickets_graph
+  schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - count
+        - t_date
+        - total_price
+      filter: {}
+    comment: ""
+  - role: cinema
+    permission:
+      columns:
+        - count
+        - t_date
+        - total_price
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - count
+        - t_date
+        - total_price
+      filter: {}
+    comment: ""

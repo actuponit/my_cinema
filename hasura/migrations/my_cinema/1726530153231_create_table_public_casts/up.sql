@@ -1,1 +1,0 @@
-CREATE TABLE "public"."casts" ("id" serial NOT NULL, "first_name" text NOT NULL, "last_name" text NOT NULL, "is_director" boolean NOT NULL DEFAULT false, "is_staring" boolean NOT NULL DEFAULT false, PRIMARY KEY ("id") , UNIQUE ("id"));COMMENT ON TABLE "public"."casts" IS E'The movie crew';

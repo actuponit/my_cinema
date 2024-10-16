@@ -1,1 +1,0 @@
-CREATE TABLE "public"."bookmarks" ("movie" integer NOT NULL, "user" integer NOT NULL, PRIMARY KEY ("movie","user") , FOREIGN KEY ("movie") REFERENCES "public"."movies"("id") ON UPDATE cascade ON DELETE cascade, FOREIGN KEY ("user") REFERENCES "public"."users"("id") ON UPDATE cascade ON DELETE cascade);

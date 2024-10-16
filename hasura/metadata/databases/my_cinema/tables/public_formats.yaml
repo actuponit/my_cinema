@@ -1,4 +1,3 @@
 table:
   name: formats
   schema: public
-is_enum: true

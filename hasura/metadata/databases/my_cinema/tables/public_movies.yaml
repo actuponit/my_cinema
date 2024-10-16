@@ -2,9 +2,6 @@ table:
   name: movies
   schema: public
 object_relationships:
-  - name: genra
-    using:
-      foreign_key_constraint_on: genre
   - name: my_director
     using:
       foreign_key_constraint_on: director

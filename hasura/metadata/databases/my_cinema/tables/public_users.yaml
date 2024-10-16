@@ -49,7 +49,6 @@ select_permissions:
       columns:
         - email
         - first_name
-        - id
         - last_name
         - role
       filter: {}
@@ -61,7 +60,6 @@ update_permissions:
       columns:
         - email
         - first_name
-        - id
         - last_name
         - role
       filter:
@@ -76,7 +74,6 @@ update_permissions:
       columns:
         - email
         - first_name
-        - id
         - last_name
       filter:
         id:

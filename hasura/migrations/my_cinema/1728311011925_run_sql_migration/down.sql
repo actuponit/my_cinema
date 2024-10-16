@@ -1,3 +1,0 @@
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- DROP FUNCTION if exists bookmark_movie(movie_row movies, hasura_session json);
