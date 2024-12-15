@@ -10,7 +10,7 @@ export default defineNuxtConfig({
   apollo: {
     clients: {
       default: {
-        httpEndpoint: 'http://localhost:8080/v1/graphql',
+        httpEndpoint: 'https://pleasing-viper-86.hasura.app/v1/graphql',
         connectToDevTools: true,
       }
     },
