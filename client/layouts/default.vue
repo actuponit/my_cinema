@@ -25,8 +25,8 @@
 
       <nav class="mt-6 flex flex-col justify-between h-[calc(100%-6.5rem)]">
         <div>
-          <div v-for="(section, index) in mainSections" :key="index" class="mb-4">
-            <NuxtLink :to="section.link" active-class="text-primary" @click="console.log"
+          <div v-for="(section, index) in mainSections" :key="section.link" class="mb-4">
+            <NuxtLink :to="section.link" active-class="text-primary"
               :class="['flex items-center w-full px-4 py-2 text-left text-gray-400 hover:bg-gray-700 hover:text-gray-100 focus:outline-none', isOpen ? 'justify-between' : 'justify-center']">
               <div class="flex items-center">
                 <component :is="section.icon" class="w-5 h-5 mr-3" />
@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { MenuIcon, XIcon, ChevronDownIcon, VideoIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon, TicketIcon, UserPlus2Icon, VideotapeIcon, TimerIcon, } from 'lucide-vue-next'
+import { MenuIcon, XIcon, VideoIcon, HomeIcon, UserIcon, BookmarkIcon, StarIcon, TicketIcon, UserPlus2Icon, VideotapeIcon, TimerIcon, } from 'lucide-vue-next'
 import { ref } from 'vue'
 const isOpen = ref(true)
 
@@ -193,3 +193,24 @@ if (role.value === 'cinema') {
   mainSections.value = [...mainSections.value, ...admin]
 }
 </script>
+
+<style>
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #6a6a6a;
+  border-radius: 10px;
+  border: 2px solid #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #2eb4ff;
+}
+</style>
