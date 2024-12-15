@@ -98,7 +98,7 @@
     </div>
 
     <!-- Pagination -->
-    <Pagination v-if="movies.length > 0" :current-page="currentPage" :total-pages="Math.ceil(totalPage / limit)" @prev-page="prevPage"
+    <Pagination v-if="movies?.length > 0" :current-page="currentPage" :total-pages="Math.ceil(totalPage / limit)" @prev-page="prevPage"
       @next-page="nextPage" />
 
   </div>
