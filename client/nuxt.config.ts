@@ -23,7 +23,4 @@ export default defineNuxtConfig({
   ui: {
     safelistColors: ['blue', 'yellow', 'black', 'primary', 'red']
   },
-  nitro: {
-    devProxy: { '/api': `https://postman-echo.com` },
-  },
 })
