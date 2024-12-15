@@ -3,7 +3,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   const token = await getToken();
 
   const api = $fetch.create({
-    baseURL: 'http://localhost:3000',
+    baseURL: 'https://my-cinema-1.onrender.com',
     onRequest({ request, options, error }) {
       if (token) {
         const headers = options.headers ||= new Headers()
