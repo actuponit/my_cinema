@@ -13,7 +13,7 @@
       <div class="bg-white bg-opacity-10 p-8 rounded-xl shadow-2xl backdrop-blur-md w-full max-w-md">
         <h2 class="text-3xl font-bold text-center text-white mb-8">Join CineTix</h2>
         <div class="space-y-6">
-          <UForm :state="values" @submit="onSubmit">
+          <UForm :state="values" @submit.prevent="onSubmit">
             <UFormGroup name="firstname" label="First Name" v-bind="firstnameProps" class="my-4">
               <UInput v-model="firstname" color="blue"/>
             </UFormGroup>

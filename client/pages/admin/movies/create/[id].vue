@@ -2,7 +2,7 @@
   <div class="container mx-auto p-6 flex-1">
     <UButton icon="i-heroicons-backward" color="black" variant="outline" @click="useRouter().back()" class="mb-5" size="lg"></UButton>
     <h1 class="text-3xl font-bold mb-6">Edit general info of a movie</h1>
-    <form @submit="onSubmit" method="post">
+    <form @submit.prevent="onSubmit" method="post">
       <div class="p-6">
         <div class="col-span-2 bg-gray-800 p-4 mb-6 text-lg font-bold border-b border-b-gray-50">
           General info

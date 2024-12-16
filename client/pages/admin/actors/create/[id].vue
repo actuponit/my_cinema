@@ -5,7 +5,7 @@
       <div v-if="error || !data?.casts_by_pk">
         <ErrorComponent title="Couldn't find the cast" :message="error?.message || ''" />
       </div>
-      <form v-else method="post" @submit="onSubmit">
+      <form v-else method="post" @submit.prevent="onSubmit">
         <div class="grid gap-6">
           <UFormGroup label="Is the preson a director" help="The default is an actor" name="isDirector">
             <UToggle v-model="isDirector" size="2xl" class="mt-3" />

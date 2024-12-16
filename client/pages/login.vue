@@ -12,7 +12,7 @@
       </div>
       <div class="bg-white bg-opacity-10 p-8 rounded-xl shadow-2xl backdrop-blur-md w-full max-w-md">
         <h2 class="text-3xl font-bold text-center text-white mb-8">Sign In to CineTix</h2>
-        <UForm :state="values" @submit="onSubmit">
+        <UForm :state="values" @submit.prevent.prevent="onSubmit">
           <UFormGroup label="Email" name="email" v-bind="emailProps" class="my-4">
             <UInput v-model="email" :color="'blue'" trailing-icon="emailProps.error ? 'i-heroicons-exclamation-triangle-20-solid' : undefined"/>
           </UFormGroup>

@@ -2,7 +2,7 @@
     <div class="container mx-auto p-6 flex-1">
     	<h1 class="text-3xl font-bold mb-6">Add New Cast Member</h1>
 			<div class="p-6">
-				<form method="post" @submit="onSubmit">
+				<form method="post" @submit.prevent="onSubmit">
 					<div class="grid gap-6">
 						<UFormGroup label="Is the preson a director" help="The default is an actor" name="isDirector">
 							<UToggle v-model="isDirector" size="2xl" class="mt-3" />

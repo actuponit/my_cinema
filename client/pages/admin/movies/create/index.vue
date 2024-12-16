@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto p-6 flex-1">
     <h1 class="text-3xl font-bold mb-6">Add New Movie</h1>
-    <form @submit="onSubmit" methd="post">
+    <form @submit.prevent="onSubmit" methd="post">
       <div class="p-6">
         <div class="col-span-2 bg-gray-800 p-4 mb-6 text-lg font-bold border-b border-b-gray-50">
           General info

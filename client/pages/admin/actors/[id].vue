@@ -70,7 +70,7 @@
         <div v-if="!(actor as Cast).is_director" class="bg-gray-800 shadow-md rounded-lg">
           <div class="p-6 text-center">
             <h2 class="text-2xl font-bold text-gray-100 mb-4 text-left">Assign New Movie</h2>
-            <form @submit.prevent="addMovie">
+            <form @submit.prevent.prevent="addMovie">
                 <USelectMenu 
                   v-model="newMovie" 
                   placeholder="Search movie title" 

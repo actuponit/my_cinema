@@ -1,7 +1,7 @@
 <template>
     <div class="container mx-auto p-6">
       <h1 class="text-3xl font-bold mb-6">Add New Movie</h1>
-      <Form @submit="onSubmit" :validation-schema="schema" v-slot="{ errors }">
+      <Form @submit.prevent="onSubmit" :validation-schema="schema" v-slot="{ errors }">
         <div class="bg-white shadow-md rounded-lg overflow-hidden">
           <div class="border-b border-gray-200">
             <nav class="flex -mb-px" aria-label="Tabs">

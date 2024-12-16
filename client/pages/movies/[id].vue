@@ -104,7 +104,7 @@
             <template #header>
               <h3 class="text-lg font-semibold">Add Your Review</h3>
             </template>
-            <form @submit="submitReview">
+            <form @submit.prevent="submitReview">
               <UFormGroup label="Rating" name="rating">
                 <StarRating v-model:rating="rating" />
               </UFormGroup>
