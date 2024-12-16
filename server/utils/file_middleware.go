@@ -6,9 +6,10 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -46,14 +47,22 @@ func FileMiddleware(c *gin.Context) {
 }
 
 func DeleteFile(url string) error {
-	path := filepath.Join(url)
-	absolutePath, err := filepath.Abs(path)
-	if err != nil {
-		return err
-	}
-	if err := os.Remove(absolutePath); err != nil {
-		return err
-	}
+	// cloudinaryURL := os.Getenv("CLOUDINARY_URL")
+	// cld, err := cloudinary.NewFromURL(cloudinaryURL)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// publicID := strings.Split(url, "/")
+	// publicID = publicID[len(publicID)-1]
+	// publicID = strings.Split(publicID, ".")[0]
+
+	// _, err = cld.Upload.Destroy(context.TODO(), uploader.DestroyParams{
+	// 	PublicID: publicID,
+	// })
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
@@ -74,15 +83,31 @@ func checkImage(file *multipart.FileHeader) error {
 }
 
 func saveImage(c *gin.Context, file *multipart.FileHeader, uploadedImages *[]domain.Image) error {
-	extensions := strings.Split(file.Filename, ".")
-	extension := extensions[len(extensions)-1]
-	newFileName := uuid.NewString() + "." + extension
-	dst := filepath.Join("uploads", newFileName)
-	if err := c.SaveUploadedFile(file, dst); err != nil {
+	// Initialize Cloudinary
+	cloudinaryURL := os.Getenv("CLOUDINARY_URL")
+	cld, err := cloudinary.NewFromURL(cloudinaryURL)
+	if err != nil {
 		return err
 	}
+
+	// Open the file
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	// Upload the file to Cloudinary
+	uploadResult, err := cld.Upload.Upload(c, src, uploader.UploadParams{
+		PublicID: uuid.NewString(),
+		Folder:   "uploads",
+	})
+	if err != nil {
+		return err
+	}
+
 	*uploadedImages = append(*uploadedImages, domain.Image{
-		ImageUrl: "uploads/" + newFileName,
+		ImageUrl: uploadResult.SecureURL,
 	})
 	return nil
 }
