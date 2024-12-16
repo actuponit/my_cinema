@@ -24,8 +24,6 @@ func NewUserService(repo repositories.UserRepositoryInterface) *UserService {
 }
 
 func (s *UserService) SignUp(user domain.User) (domain.UserDto, error) {
-	log.Println(user)
-	log.Println("herere", len(user.Password))
 	if len(user.Password) < 7 {
 		return domain.UserDto{}, errors.New("password must be at least 7 characters long")
 	}
