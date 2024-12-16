@@ -25,17 +25,17 @@
 
       <nav class="mt-6 flex flex-col justify-between h-[calc(100%-6.5rem)]">
         <div>
-          <ClientOnly>
           <div v-for="(section, index) in mainSections" :key="section.link" class="mb-4">
               <NuxtLink :to="section.link" active-class="text-primary"
                 :class="['flex items-center w-full px-4 py-2 text-left text-gray-400 hover:bg-gray-700 hover:text-gray-100 focus:outline-none', isOpen ? 'justify-between' : 'justify-center']">
-                <div class="flex items-center">
-                  <component :is="section.icon" class="w-5 h-5 mr-3" />
-                  <span v-if="isOpen" class="text-sm font-medium">{{ section.title }}</span>
-                </div>
+                <ClientOnly>
+                  <div class="flex items-center">
+                      <component :key="section.link" :is="section.icon" class="w-5 h-5 mr-3" />
+                    <span v-if="isOpen" class="text-sm font-medium">{{ section.title }}</span>
+                  </div>
+                </ClientOnly>
               </NuxtLink>
             </div>
-          </ClientOnly>
         </div>
 
         <div class="mt-auto">
