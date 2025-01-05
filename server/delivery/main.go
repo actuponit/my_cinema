@@ -48,7 +48,6 @@ func main() {
 	authController := controllers.NewAuthController(userService)
 	fileController := controllers.NewFileController()
 
-	router.Static("/uploads", "./uploads")
 	routers.CreateAuthRoutes(router, authController)
 	routers.CreateFileRoutes(router, fileController)
 
