@@ -47,9 +47,11 @@ func main() {
 
 	authController := controllers.NewAuthController(userService)
 	fileController := controllers.NewFileController()
+	paymentController := controllers.NewPaymentController()
 
 	routers.CreateAuthRoutes(router, authController)
 	routers.CreateFileRoutes(router, fileController)
+	routers.CreatePaymentRoutes(router, paymentController)
 
 	if err := router.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatal(err)

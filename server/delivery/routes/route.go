@@ -16,3 +16,8 @@ func CreateFileRoutes(router *gin.Engine, controller *controllers.FileController
 	router.POST("uploads", utils.AuthMiddleware("cinema"), utils.FileMiddleware, controller.UploadFiles)
 	router.DELETE("uploads", controller.DeleteFile)
 }
+
+func CreatePaymentRoutes(router *gin.Engine, controller *controllers.PaymentController) {
+	router.POST("payments/initialize", controller.InitiatePayment)
+	router.POST("payments/webhook", controller.ChapaWebhook)
+}
