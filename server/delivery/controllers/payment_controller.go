@@ -6,8 +6,10 @@ import (
 	"cinema-server/domain"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -78,8 +80,7 @@ func (pc *PaymentController) InitiatePayment(c *gin.Context) {
 }
 
 func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
-	// verify the request is from chapa
-
+	// Updated ChapaWebhook with MQTT publishing
 	var reqBody map[string]interface{}
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -92,11 +93,30 @@ func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
 		return
 	}
 
-	// change the status of the request in the database
+	// Initialize MQTT client options
+	opts := mqtt.NewClientOptions().AddBroker("tcp://test.mosquitto.org:1883")
+	opts.SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
+		log.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
+	})
 
-	// send a firebase notification to the arduino (push notfication)
+	// Create and start a client using the above ClientOptions
+	client := mqtt.NewClient(opts)
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to MQTT broker"})
+		return
+	}
+	defer client.Disconnect(250)
+
+	// Define the topic and message
+	topic := "chapa/webhook"
+	message := fmt.Sprintf("Received webhook: %s", string(reqBodyJSON))
+
+	// Publish the message
+	if token := client.Publish(topic, 0, false, message); token.Wait() && token.Error() != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to publish MQTT message"})
+		return
+	}
 
 	fmt.Println(string(reqBodyJSON))
-
-	c.JSON(http.StatusOK, gin.H{"message": "Webhook received"})
+	c.JSON(http.StatusOK, gin.H{"message": "Webhook received and message published to MQTT"})
 }
