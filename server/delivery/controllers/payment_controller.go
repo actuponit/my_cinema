@@ -109,10 +109,9 @@ func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
 
 	// Define the topic and message
 	topic := "chapa/webhook"
-	message := fmt.Sprintf("Received webhook: %s", string(reqBodyJSON))
 
 	// Publish the message
-	if token := client.Publish(topic, 0, false, message); token.Wait() && token.Error() != nil {
+	if token := client.Publish(topic, 0, false, "start_motor"); token.Wait() && token.Error() != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to publish MQTT message"})
 		return
 	}
