@@ -20,4 +20,5 @@ func CreateFileRoutes(router *gin.Engine, controller *controllers.FileController
 func CreatePaymentRoutes(router *gin.Engine, controller *controllers.PaymentController) {
 	router.POST("payments/initialize", controller.InitiatePayment)
 	router.POST("payments/webhook", controller.ChapaWebhook)
+	router.POST("payment/initiate", controller.TestGraphqlAction)
 }
