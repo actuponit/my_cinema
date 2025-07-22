@@ -137,7 +137,7 @@ func (pc *PaymentController) TestGraphqlAction(c *gin.Context) {
 	fmt.Printf("Received request - ItemId: %s, VendingMachineId: %s\n", reqBody.ItemId, reqBody.VendingMachineId)
 
 	// Return the expected JSON response
-	c.JSON(http.StatusOK, gin.H{
+	c.IndentedJSON(http.StatusOK, gin.H{
 		"checkOutUrl": "https://example.com/checkout/" + reqBody.ItemId,
 	})
 }
