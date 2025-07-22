@@ -119,3 +119,25 @@ func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
 	fmt.Println(string(reqBodyJSON))
 	c.JSON(http.StatusOK, gin.H{"message": "Webhook received and message published to MQTT"})
 }
+
+func (pc *PaymentController) TestGraphqlAction(c *gin.Context) {
+	// Define the request structure
+	var reqBody struct {
+		ItemId           string `json:"itemId"`
+		VendingMachineId string `json:"vendingMachineId"`
+	}
+
+	// Bind the JSON request body
+	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Print the request
+	fmt.Printf("Received request - ItemId: %s, VendingMachineId: %s\n", reqBody.ItemId, reqBody.VendingMachineId)
+
+	// Return the expected JSON response
+	c.JSON(http.StatusOK, gin.H{
+		"checkOutUrl": "https://example.com/checkout/" + reqBody.ItemId,
+	})
+}
