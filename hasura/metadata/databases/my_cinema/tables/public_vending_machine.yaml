@@ -1,0 +1,17 @@
+table:
+  name: vending_machine
+  schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - latitude
+        - longitude
+        - location
+        - name
+        - created_at
+        - updated_at
+        - id
+      filter: {}
+      allow_aggregations: true
+    comment: ""

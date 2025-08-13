@@ -11,4 +11,8 @@
 - "!include public_schedules.yaml"
 - "!include public_tickets.yaml"
 - "!include public_tickets_graph.yaml"
+- "!include public_transactions.yaml"
 - "!include public_users.yaml"
+- "!include public_vending_machine.yaml"
+- "!include public_vending_machine_items.yaml"
+- "!include public_vending_machine_to_items.yaml"

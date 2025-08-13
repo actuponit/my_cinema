@@ -1,0 +1,2 @@
+CREATE TABLE "public"."transactions" ("id" uuid NOT NULL DEFAULT gen_random_uuid(), "combination_id" bigint NOT NULL, "price" numeric NOT NULL, "status" boolean NOT NULL DEFAULT FALSE, "tex_ref" uuid NOT NULL, PRIMARY KEY ("id") , FOREIGN KEY ("combination_id") REFERENCES "public"."vending_machine_to_items"("id") ON UPDATE restrict ON DELETE restrict, UNIQUE ("tex_ref"));
+CREATE EXTENSION IF NOT EXISTS pgcrypto;

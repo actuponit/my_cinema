@@ -1,4 +1,24 @@
 actions:
+  - name: initiateTransaction
+    definition:
+      kind: synchronous
+      handler: '{{WEB_HOOK_URL}}/payment/initiate'
+      request_transform:
+        body:
+          action: transform
+          template: |-
+            {
+              "id": {{$body.input.arg.id}}
+            }
+        template_engine: Kriti
+        version: 2
+      response_transform:
+        body:
+          action: transform
+          template: |
+            {{$body}}
+        template_engine: Kriti
+        version: 2
   - name: login
     definition:
       kind: synchronous
@@ -53,7 +73,10 @@ custom_types:
   enums: []
   input_objects:
     - name: UserInput
+    - name: InitiateTransactionInput
   objects:
     - name: UserOutput
     - name: UserDto
+    - name: SampleOutput
+    - name: InitiateTransactionOutput
   scalars: []

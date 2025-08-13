@@ -1,0 +1,14 @@
+table:
+  name: vending_machine_items
+  schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - id
+        - price
+        - name
+        - created_at
+        - updated_at
+      filter: {}
+    comment: ""

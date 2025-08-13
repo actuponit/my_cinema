@@ -1,0 +1,20 @@
+table:
+  name: vending_machine_to_items
+  schema: public
+object_relationships:
+  - name: vending_machine
+    using:
+      foreign_key_constraint_on: machine_id
+  - name: vending_machine_item
+    using:
+      foreign_key_constraint_on: item_id
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - id
+        - amount
+        - item_id
+        - machine_id
+      filter: {}
+    comment: ""
