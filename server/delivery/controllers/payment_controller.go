@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"cinema-server/config"
 	"cinema-server/domain"
+	"cinema-server/services"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,10 +15,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type PaymentController struct{}
+type PaymentController struct {
+	paymentService services.PaymentServiceInterface
+}
 
-func NewPaymentController() *PaymentController {
-	return &PaymentController{}
+func NewPaymentController(s services.PaymentServiceInterface) *PaymentController {
+	return &PaymentController{paymentService: s}
 }
 
 func (pc *PaymentController) InitiatePayment(c *gin.Context) {
@@ -81,7 +84,7 @@ func (pc *PaymentController) InitiatePayment(c *gin.Context) {
 
 func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
 	// Updated ChapaWebhook with MQTT publishing
-	var reqBody map[string]interface{}
+	var reqBody map[string]any
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -116,6 +119,8 @@ func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
 		return
 	}
 
+	pc.paymentService.HandleWebhook(reqBody)
+
 	fmt.Println(string(reqBodyJSON))
 	c.JSON(http.StatusOK, gin.H{"message": "Webhook received and message published to MQTT"})
 }
@@ -123,8 +128,7 @@ func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
 func (pc *PaymentController) TestGraphqlAction(c *gin.Context) {
 	// Define the request structure
 	var reqBody struct {
-		ItemId           string `json:"itemId"`
-		VendingMachineId string `json:"vendingMachineId"`
+		Id int `json:"id"`
 	}
 
 	// Bind the JSON request body
@@ -134,10 +138,14 @@ func (pc *PaymentController) TestGraphqlAction(c *gin.Context) {
 	}
 
 	// Print the request
-	fmt.Printf("Received request - ItemId: %s, VendingMachineId: %s\n", reqBody.ItemId, reqBody.VendingMachineId)
+	checkoutURL, err := pc.paymentService.InitiatePayment(reqBody.Id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	// Return the expected JSON response
 	c.IndentedJSON(http.StatusOK, gin.H{
-		"checkOutUrl": "https://example.com/checkout/" + reqBody.ItemId,
+		"checkOutUrl": checkoutURL,
 	})
 }

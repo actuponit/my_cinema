@@ -43,11 +43,14 @@ func main() {
 	client := graphql.NewClient(hasuraEndpoint, httpClient)
 
 	userRepository := repositories.NewUserRepository(client)
+	paymentRepository := repositories.NewPaymentRepository(client)
+
 	userService := services.NewUserService(userRepository)
+	paymentService := services.NewPaymentService(paymentRepository)
 
 	authController := controllers.NewAuthController(userService)
 	fileController := controllers.NewFileController()
-	paymentController := controllers.NewPaymentController()
+	paymentController := controllers.NewPaymentController(paymentService)
 
 	routers.CreateAuthRoutes(router, authController)
 	routers.CreateFileRoutes(router, fileController)
