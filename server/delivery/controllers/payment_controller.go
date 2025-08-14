@@ -5,12 +5,12 @@ import (
 	"cinema-server/config"
 	"cinema-server/domain"
 	"cinema-server/services"
+	"cinema-server/utils"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -83,10 +83,24 @@ func (pc *PaymentController) InitiatePayment(c *gin.Context) {
 }
 
 func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
-	// Updated ChapaWebhook with MQTT publishing
+	// Handle Chapa webhook
 	var reqBody map[string]any
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Verify webhook signature
+	signature := c.GetHeader("Chapa-Signature")
+	if signature == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Chapa-Signature header"})
+		return
+	}
+
+	// Verify the webhook signature
+	if err := utils.VerifyChapaWebhookSignatureFromMap(reqBody, signature); err != nil {
+		log.Printf("Webhook signature verification failed: %v", err)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid webhook signature"})
 		return
 	}
 
@@ -96,33 +110,15 @@ func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
 		return
 	}
 
-	// Initialize MQTT client options
-	opts := mqtt.NewClientOptions().AddBroker("tcp://test.mosquitto.org:1883")
-	opts.SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
-		log.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
-	})
-
-	// Create and start a client using the above ClientOptions
-	client := mqtt.NewClient(opts)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to MQTT broker"})
+	// Process the webhook through the payment service
+	if err := pc.paymentService.HandleWebhook(reqBody); err != nil {
+		log.Printf("Failed to handle webhook: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process webhook"})
 		return
 	}
-	defer client.Disconnect(250)
-
-	// Define the topic and message
-	topic := "chapa/webhook"
-
-	// Publish the message
-	if token := client.Publish(topic, 0, false, "start_motor"); token.Wait() && token.Error() != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to publish MQTT message"})
-		return
-	}
-
-	pc.paymentService.HandleWebhook(reqBody)
 
 	fmt.Println(string(reqBodyJSON))
-	c.JSON(http.StatusOK, gin.H{"message": "Webhook received and message published to MQTT"})
+	c.JSON(http.StatusOK, gin.H{"message": "Webhook received and processed successfully"})
 }
 
 func (pc *PaymentController) TestGraphqlAction(c *gin.Context) {

@@ -11,17 +11,19 @@ import (
 )
 
 type PaymentServiceInterface interface {
-	InitiatePayment(req int) (string, error)
+	InitiatePayment(id int) (string, error)
 	HandleWebhook(webhookData map[string]any) error
 }
 
 type PaymentService struct {
-	repo repositories.PaymentRepositoryInterface
+	repo                  repositories.PaymentRepositoryInterface
+	vendingMachineService VendingMachineServiceInterface
 }
 
-func NewPaymentService(repo repositories.PaymentRepositoryInterface) *PaymentService {
+func NewPaymentService(repo repositories.PaymentRepositoryInterface, vendingMachineService VendingMachineServiceInterface) *PaymentService {
 	return &PaymentService{
-		repo: repo,
+		repo:                  repo,
+		vendingMachineService: vendingMachineService,
 	}
 }
 
@@ -85,13 +87,31 @@ func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {
 	// For now, we'll need to get the combination ID from somewhere
 	// This might need to be stored in the webhook metadata or retrieved from a pending transaction
 	// For demonstration, assuming we have this value
-	combinationID := 1 // This should come from the webhook data or be retrieved from pending transaction
+	var combinationID int = 1 // This should come from the webhook data or be retrieved from pending transaction
 
 	// Update transaction status and decrease item amount
 	err := s.repo.UpdateStatus(txRef, combinationID)
 	if err != nil {
 		log.Printf("Failed to update transaction status: %v", err)
 		return err
+	}
+
+	// Extract vending machine ID from metadata and start the motor
+	if vendingMachineIDStr, ok := meta["vending_machine_id"].(string); ok {
+		// Convert string to int (you might want to add proper error handling here)
+		// For now, assuming it's a valid integer string
+		if vendingMachineID, err := strconv.ParseInt(vendingMachineIDStr, 10, 64); err == nil {
+			// Start the motor to dispense the item
+			if err := s.vendingMachineService.StartMotor(int(vendingMachineID)); err != nil {
+				log.Printf("Failed to start motor for vending machine %d: %v", vendingMachineID, err)
+				// Don't return error here as the payment was successful
+				// Just log the issue for monitoring
+			} else {
+				log.Printf("Successfully started motor for vending machine %d", vendingMachineID)
+			}
+		} else {
+			log.Printf("Invalid vending machine ID format: %s", vendingMachineIDStr)
+		}
 	}
 
 	log.Printf("Successfully processed webhook for tx_ref: %s", txRef)

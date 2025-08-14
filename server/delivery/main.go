@@ -45,8 +45,14 @@ func main() {
 	userRepository := repositories.NewUserRepository(client)
 	paymentRepository := repositories.NewPaymentRepository(client)
 
+	// Initialize MQTT client
+	mqttConfig := utils.DefaultMQTTConfig()
+	mqttClient := utils.NewMQTTClientFromConfig(mqttConfig)
+
+	// Initialize services
 	userService := services.NewUserService(userRepository)
-	paymentService := services.NewPaymentService(paymentRepository)
+	vendingMachineService := services.NewVendingMachineService(mqttClient)
+	paymentService := services.NewPaymentService(paymentRepository, vendingMachineService)
 
 	authController := controllers.NewAuthController(userService)
 	fileController := controllers.NewFileController()
