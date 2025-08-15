@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/hasura/go-graphql-client"
@@ -33,13 +34,13 @@ func NewPaymentRepository(client *graphql.Client) *PaymentRepository {
 
 func (r *PaymentRepository) FetchVendingMachineItem(id int) (domain.VendingMachineItem, error) {
 	var q struct {
-		VendingMachineToItems []struct {
+		VendingMachineToItemsByPk struct {
 			ID     int `graphql:"id"`
 			Amount int `graphql:"amount"`
 			Item   struct {
 				Price float64 `graphql:"price"`
 			} `graphql:"vending_machine_item"`
-		} `graphql:"vending_machine_to_items_by_pk(where: $id)"`
+		} `graphql:"vending_machine_to_items_by_pk(id: $id)"`
 	}
 
 	variables := map[string]any{
@@ -51,11 +52,13 @@ func (r *PaymentRepository) FetchVendingMachineItem(id int) (domain.VendingMachi
 		return domain.VendingMachineItem{}, err
 	}
 
-	if len(q.VendingMachineToItems) == 0 {
+	// Check if the item exists
+	if q.VendingMachineToItemsByPk.ID == 0 {
 		return domain.VendingMachineItem{}, errors.New("vending machine item not found")
 	}
 
-	item := q.VendingMachineToItems[0]
+	item := q.VendingMachineToItemsByPk
+
 	return domain.VendingMachineItem{
 		ID:     item.ID,
 		Amount: item.Amount,
@@ -64,11 +67,23 @@ func (r *PaymentRepository) FetchVendingMachineItem(id int) (domain.VendingMachi
 }
 
 func (r *PaymentRepository) CreateTransaction(texRef string, id int, price float64) error {
-	var m struct {
-		InsertTransactions struct {
-			AffectedRows int `graphql:"affected_rows"`
-		} `graphql:"insert_transactions(objects: {combination_id: $combination_id, price: $price, tex_ref: $tex_ref})"`
-	}
+	query := `
+		mutation InsertTransaction($combination_id: Int!, $price: numeric!, $tex_ref: String!) {
+			insert_transactions_one(object: {
+				combination_id: $combination_id,
+				price: $price,
+				tex_ref: $tex_ref
+			}) {
+				id
+			}
+		}
+	`
+
+	m := struct {
+		InsertTransactionsOne struct {
+			ID string `graphql:"id"`
+		} `graphql:"insert_transactions_one"`
+	}{}
 
 	variables := map[string]any{
 		"combination_id": id,
@@ -76,7 +91,7 @@ func (r *PaymentRepository) CreateTransaction(texRef string, id int, price float
 		"tex_ref":        texRef,
 	}
 
-	err := r.client.Mutate(context.Background(), &m, variables)
+	err := r.client.Exec(context.Background(), query, &m, variables)
 	if err != nil {
 		return err
 	}
@@ -98,17 +113,19 @@ func (r *PaymentRepository) UpdateStatus(texRef string, id int) error {
 		"tex_ref": texRef,
 		"id":      id,
 	}
+
 	err := r.client.Mutate(context.Background(), &m, variables)
 	if err != nil {
 		return err
 	}
 
 	return nil
-
 }
 
 func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, error) {
 	chapaConfig := config.NewChapaConfig()
+
+	fmt.Println("HELLO ", req.TxRef)
 
 	payload := map[string]interface{}{
 		"amount":                     req.Amount,
@@ -132,6 +149,7 @@ func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, 
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+chapaConfig.SecretKey)
 
+	fmt.Println("HELLO ", req.TxRef)
 	resp, err := r.httpClient.Do(httpReq)
 	if err != nil {
 		return "", err
