@@ -18,4 +18,3 @@ RUN go build -v -o /usr/local/bin/ ./...
 
 # Start the Go server
 CMD ["/usr/local/bin/delivery"]
-

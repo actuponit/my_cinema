@@ -25,7 +25,7 @@ input UserInput {
 }
 
 input InitiateTransactionInput {
-  id: String!
+  id: Int!
 }
 
 type UserOutput {
@@ -47,5 +47,6 @@ type SampleOutput {
 
 type InitiateTransactionOutput {
   checkOutUrl: String!
+  textRef: String!
 }
 
