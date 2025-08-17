@@ -134,14 +134,12 @@ func (pc *PaymentController) TestGraphqlAction(c *gin.Context) {
 	}
 
 	// Print the request
-	checkoutURL, err := pc.paymentService.InitiatePayment(reqBody.Id)
+	paymentResponse, err := pc.paymentService.InitiatePayment(reqBody.Id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Return the expected JSON response
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"checkOutUrl": checkoutURL,
-	})
+	c.IndentedJSON(http.StatusOK, paymentResponse)
 }

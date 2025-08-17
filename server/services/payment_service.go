@@ -11,7 +11,7 @@ import (
 )
 
 type PaymentServiceInterface interface {
-	InitiatePayment(id int) (string, error)
+	InitiatePayment(id int) (domain.PaymentResponse, error)
 	HandleWebhook(webhookData map[string]any) error
 }
 
@@ -27,11 +27,11 @@ func NewPaymentService(repo repositories.PaymentRepositoryInterface, vendingMach
 	}
 }
 
-func (s *PaymentService) InitiatePayment(id int) (string, error) {
+func (s *PaymentService) InitiatePayment(id int) (domain.PaymentResponse, error) {
 	item, err := s.repo.FetchVendingMachineItem(id)
 	if err != nil {
 		log.Printf("Failed to fetch vending machine item: %v", err)
-		return "", err
+		return domain.PaymentResponse{}, err
 	}
 	req := domain.PaymentRequest{
 		Amount:           strconv.FormatFloat(item.Price, 'f', -1, 64),
@@ -43,15 +43,18 @@ func (s *PaymentService) InitiatePayment(id int) (string, error) {
 	checkoutURL, err := s.repo.InitiatePayment(req)
 	if err != nil {
 		log.Printf("Failed to initiate payment: %v", err)
-		return "", err
+		return domain.PaymentResponse{}, err
 	}
 
 	if err = s.repo.CreateTransaction(req.TxRef, item.ID, item.Price); err != nil {
 		log.Printf("Failed to create transaction: %v", err)
-		return "", err
+		return domain.PaymentResponse{}, err
 	}
 
-	return checkoutURL, nil
+	return domain.PaymentResponse{
+		CheckoutURL: checkoutURL,
+		TextRef:     req.TxRef,
+	}, nil
 }
 
 func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {

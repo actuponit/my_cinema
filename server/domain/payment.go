@@ -15,3 +15,8 @@ type ChapaPaymentResponse struct {
 		CheckoutURL string `json:"checkout_url"`
 	} `json:"data"`
 }
+
+type PaymentResponse struct {
+	CheckoutURL string `json:"checkOutUrl"`
+	TextRef     string `json:"textRef"`
+}
