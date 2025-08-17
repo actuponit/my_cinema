@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/hasura/go-graphql-client"
@@ -125,8 +124,6 @@ func (r *PaymentRepository) UpdateStatus(texRef string, id int) error {
 func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, error) {
 	chapaConfig := config.NewChapaConfig()
 
-	fmt.Println("HELLO ", req.TxRef)
-
 	payload := map[string]interface{}{
 		"amount":                     req.Amount,
 		"currency":                   req.Currency,
@@ -149,7 +146,6 @@ func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, 
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+chapaConfig.SecretKey)
 
-	fmt.Println("HELLO ", req.TxRef)
 	resp, err := r.httpClient.Do(httpReq)
 	if err != nil {
 		return "", err

@@ -4,7 +4,6 @@ import (
 	"cinema-server/domain"
 	"context"
 	"errors"
-	"log"
 
 	"github.com/hasura/go-graphql-client"
 )
@@ -29,7 +28,6 @@ func (r *UserRepository) CreateUser(user domain.User) (domain.User, error) {
 		InsertUser domain.User `graphql:"insert_users_one(object: {email: $email, password: $password, first_name: $first_name, last_name: $last_name})"`
 	}
 
-	log.Println(user)
 	variables := map[string]interface{}{
 		"email":      user.Email,
 		"password":   user.Password,
@@ -57,7 +55,7 @@ func (r *UserRepository) GetUser(email string) (domain.User, error) {
 	if err != nil {
 		return domain.User{}, err
 	}
-	log.Println(q.Users)
+
 	if len(q.Users) == 0 {
 		return domain.User{}, errors.New("user not found")
 	}
