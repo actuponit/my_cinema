@@ -13,16 +13,18 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - HASURA_GRAPHQL_ENDPOINT=http://graphql-engine:8080/v1/graphql
-      - HASURA_GRAPHQL_ADMIN_SECRET=myadminsecretkey
-      - JWT_SECRET=oursupersecretsupersecurekey1234567890
-      - PORT=3000
+      - HASURA_GRAPHQL_ENDPOINT=${HASURA_GRAPHQL_ENDPOINT}
+      - HASURA_GRAPHQL_ADMIN_SECRET=${HASURA_GRAPHQL_ADMIN_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=${PORT}
+      - CHAPA_SECRET_KEY=${CHAPA_SECRET_KEY}
+      - CHAPA_WEBHOOK_SECRET=${CHAPA_WEBHOOK_SECRET}
     volumes:
       - uploads:/usr/src/app/uploads
   graphql-engine:
-    image: hasura/graphql-engine:v2.42.0
+    image: hasura/graphql-engine:v2.46.0
     ports:
-      - "8080:8080"
+      - "8000:8080"
     restart: always
     environment:
       ## postgres database to store Hasura metadata
@@ -37,7 +39,7 @@ services:
       ## uncomment next line to run console offline (i.e load console assets from server instead of CDN)
       # HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
       ## uncomment next line to set an admin secret
-      HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: anonymous
       HASURA_GRAPHQL_JWT_SECRET: '{ "type": "HS256", "key": "oursupersecretsupersecurekey1234567890" }'
       WEB_HOOK_URL: http://go-server:3000
@@ -46,7 +48,7 @@ services:
       data-connector-agent:
         condition: service_healthy
   data-connector-agent:
-    image: hasura/graphql-data-connector:v2.42.0
+    image: hasura/graphql-data-connector:v2.46.0
     restart: always
     ports:
       - 8081:8081
