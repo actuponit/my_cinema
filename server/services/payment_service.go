@@ -4,7 +4,6 @@ import (
 	"cinema-server/domain"
 	"cinema-server/repositories"
 	"errors"
-	"fmt"
 	"log"
 	"strconv"
 
@@ -59,9 +58,8 @@ func (s *PaymentService) InitiatePayment(id int) (domain.PaymentResponse, error)
 }
 
 func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {
-	fmt.Println("HandleWebhook:", webhookData)
 	// Extract required data from webhook
-	txRef, ok := webhookData["reference"].(string)
+	txRef, ok := webhookData["tx_ref"].(string)
 	if !ok {
 		return errors.New("transaction reference not found in webhook data")
 	}
