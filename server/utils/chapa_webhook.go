@@ -11,6 +11,7 @@ import (
 
 // VerifyChapaWebhookSignature verifies the Chapa webhook signature
 func VerifyChapaWebhookSignature(requestBody []byte, signature string) error {
+	fmt.Println("VerifyChapaWebhookSignature:", string(requestBody), signature)
 	// Get the secret key from environment variable
 	secret := os.Getenv("CHAPA_WEBHOOK_SECRET")
 	if secret == "" {
