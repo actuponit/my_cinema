@@ -91,7 +91,7 @@ func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
 	}
 
 	// Verify webhook signature
-	signature := c.GetHeader("x-chapa-signature")
+	signature := c.GetHeader("Chapa-Signature")
 	if signature == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Chapa-Signature header"})
 		return

@@ -20,7 +20,7 @@ func VerifyChapaWebhookSignature(requestBody []byte, signature string) error {
 
 	// Create HMAC-SHA256 hash
 	h := hmac.New(sha256.New, []byte(secret))
-	h.Write(requestBody)
+	h.Write([]byte(secret))
 	expectedHash := hex.EncodeToString(h.Sum(nil))
 
 	// Compare the expected hash with the received signature
