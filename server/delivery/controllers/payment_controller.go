@@ -91,14 +91,15 @@ func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
 	}
 
 	// Verify webhook signature
-	signature := c.GetHeader("Chapa-Signature")
+	signature := c.GetHeader("chapa-signature")
+	signature2 := c.GetHeader("x-chapa-signature")
 	if signature == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Chapa-Signature header"})
 		return
 	}
 
 	// Verify the webhook signature
-	if err := utils.VerifyChapaWebhookSignatureFromMap(reqBody, signature); err != nil {
+	if err := utils.VerifyChapaWebhookSignatureFromMap(reqBody, signature, signature2); err != nil {
 		log.Printf("Webhook signature verification failed: %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid webhook signature"})
 		return
