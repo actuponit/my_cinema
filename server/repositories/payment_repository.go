@@ -103,14 +103,11 @@ func (r *PaymentRepository) UpdateStatus(texRef string, id int) error {
 		UpdateTransactions struct {
 			AffectedRows int `graphql:"affected_rows"`
 		} `graphql:"update_transactions(where: {tex_ref: {_eq: $tex_ref}}, _set: {status: true})"`
-		UpdateVendingMachine struct {
-			id int `graphql:"id"`
-		} `graphql:"update_vending_machine_to_items_by_pk(pk_columns: {id: $id}, _inc: {amount: -1})"`
 	}
 
 	variables := map[string]any{
 		"tex_ref": texRef,
-		"id":      id,
+		// "id":      id,
 	}
 
 	err := r.client.Mutate(context.Background(), &m, variables)

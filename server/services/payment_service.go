@@ -76,16 +76,16 @@ func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {
 	}
 
 	// Extract vending machine and item information from metadata
-	meta, ok := webhookData["meta"].(map[string]any)
-	if !ok {
-		return errors.New("metadata not found in webhook data")
-	}
+	// meta, ok := webhookData["meta"].(map[string]any)
+	// if !ok {
+	// 	return errors.New("metadata not found in webhook data")
+	// }
 
-	// Validate vending machine ID exists in metadata
-	_, ok = meta["vending_machine_id"].(string)
-	if !ok {
-		return errors.New("vending machine ID not found in metadata")
-	}
+	// // Validate vending machine ID exists in metadata
+	// _, ok = meta["vending_machine_id"].(string)
+	// if !ok {
+	// 	return errors.New("vending machine ID not found in metadata")
+	// }
 
 	// For now, we'll need to get the combination ID from somewhere
 	// This might need to be stored in the webhook metadata or retrieved from a pending transaction
@@ -100,22 +100,22 @@ func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {
 	}
 
 	// Extract vending machine ID from metadata and start the motor
-	if vendingMachineIDStr, ok := meta["vending_machine_id"].(string); ok {
-		// Convert string to int (you might want to add proper error handling here)
-		// For now, assuming it's a valid integer string
-		if vendingMachineID, err := strconv.ParseInt(vendingMachineIDStr, 10, 64); err == nil {
-			// Start the motor to dispense the item
-			if err := s.vendingMachineService.StartMotor(int(vendingMachineID)); err != nil {
-				log.Printf("Failed to start motor for vending machine %d: %v", vendingMachineID, err)
-				// Don't return error here as the payment was successful
-				// Just log the issue for monitoring
-			} else {
-				log.Printf("Successfully started motor for vending machine %d", vendingMachineID)
-			}
-		} else {
-			log.Printf("Invalid vending machine ID format: %s", vendingMachineIDStr)
-		}
-	}
+	// if vendingMachineIDStr, ok := meta["vending_machine_id"].(string); ok {
+	// 	// Convert string to int (you might want to add proper error handling here)
+	// 	// For now, assuming it's a valid integer string
+	// 	if vendingMachineID, err := strconv.ParseInt(vendingMachineIDStr, 10, 64); err == nil {
+	// 		// Start the motor to dispense the item
+	// 		if err := s.vendingMachineService.StartMotor(int(vendingMachineID)); err != nil {
+	// 			log.Printf("Failed to start motor for vending machine %d: %v", vendingMachineID, err)
+	// 			// Don't return error here as the payment was successful
+	// 			// Just log the issue for monitoring
+	// 		} else {
+	// 			log.Printf("Successfully started motor for vending machine %d", vendingMachineID)
+	// 		}
+	// 	} else {
+	// 		log.Printf("Invalid vending machine ID format: %s", vendingMachineIDStr)
+	// 	}
+	// }
 
 	log.Printf("Successfully processed webhook for tx_ref: %s", txRef)
 	return nil
