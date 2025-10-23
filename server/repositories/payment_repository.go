@@ -15,7 +15,7 @@ import (
 type PaymentRepositoryInterface interface {
 	FetchVendingMachineItem(id int) (domain.VendingMachineItem, error)
 	CreateTransaction(texRef string, id int, price float64) error
-	UpdateStatus(texRef string, id int) error
+	UpdateStatus(texRef string, id int) (error, string)
 	InitiatePayment(domain.PaymentRequest) (string, error)
 }
 
@@ -98,9 +98,15 @@ func (r *PaymentRepository) CreateTransaction(texRef string, id int, price float
 	return nil
 }
 
-func (r *PaymentRepository) UpdateStatus(texRef string, id int) error {
+func (r *PaymentRepository) UpdateStatus(texRef string, id int) (error, string) {
 	var m struct {
 		UpdateTransactions struct {
+			Returning []struct {
+				CombinationID        int `graphql:"combination_id"`
+				VendingMachineToItem struct {
+					MotorCode string `graphql:"motor_code"`
+				} `graphql:"vending_machine_to_item"`
+			} `graphql:"returning"`
 			AffectedRows int `graphql:"affected_rows"`
 		} `graphql:"update_transactions(where: {tex_ref: {_eq: $tex_ref}}, _set: {status: true})"`
 	}
@@ -112,10 +118,10 @@ func (r *PaymentRepository) UpdateStatus(texRef string, id int) error {
 
 	err := r.client.Mutate(context.Background(), &m, variables)
 	if err != nil {
-		return err
+		return err, ""
 	}
 
-	return nil
+	return nil, m.UpdateTransactions.Returning[0].VendingMachineToItem.MotorCode
 }
 
 func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, error) {

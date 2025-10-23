@@ -93,10 +93,18 @@ func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {
 	var combinationID int = 1 // This should come from the webhook data or be retrieved from pending transaction
 
 	// Update transaction status and decrease item amount
-	err := s.repo.UpdateStatus(txRef, combinationID)
+	err, motorCode := s.repo.UpdateStatus(txRef, combinationID)
 	if err != nil {
 		log.Printf("Failed to update transaction status: %v", err)
 		return err
+	}
+
+	if err := s.vendingMachineService.SendCommand(0, motorCode); err != nil {
+		log.Printf("Failed to start motor for vending machine %s: %v", motorCode, err)
+		// Don't return error here as the payment was successful
+		// Just log the issue for monitoring
+	} else {
+		log.Printf("Successfully started motor for vending machine %s", motorCode)
 	}
 
 	// Extract vending machine ID from metadata and start the motor
@@ -105,13 +113,7 @@ func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {
 	// 	// For now, assuming it's a valid integer string
 	// 	if vendingMachineID, err := strconv.ParseInt(vendingMachineIDStr, 10, 64); err == nil {
 	// 		// Start the motor to dispense the item
-	// 		if err := s.vendingMachineService.StartMotor(int(vendingMachineID)); err != nil {
-	// 			log.Printf("Failed to start motor for vending machine %d: %v", vendingMachineID, err)
-	// 			// Don't return error here as the payment was successful
-	// 			// Just log the issue for monitoring
-	// 		} else {
-	// 			log.Printf("Successfully started motor for vending machine %d", vendingMachineID)
-	// 		}
+
 	// 	} else {
 	// 		log.Printf("Invalid vending machine ID format: %s", vendingMachineIDStr)
 	// 	}
