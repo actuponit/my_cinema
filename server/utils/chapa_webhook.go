@@ -18,6 +18,7 @@ func VerifyChapaWebhookSignature(requestBody []byte, signature, signature2 strin
 	if secret == "" {
 		return fmt.Errorf("CHAPA_WEBHOOK_SECRET environment variable not set")
 	}
+	fmt.Println("VerifyChapaWebhookSecret:", secret)
 
 	// Create HMAC-SHA256 hash
 	h := hmac.New(sha256.New, []byte(secret))
