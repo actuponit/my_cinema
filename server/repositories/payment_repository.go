@@ -71,20 +71,8 @@ func (r *PaymentRepository) FetchVendingMachineItem(id int) (domain.VendingMachi
 }
 
 func (r *PaymentRepository) FetchVendingMachineItems(ids []int) ([]domain.VendingMachineItem, error) {
-	// Build the _or condition for multiple IDs
-	type IDCondition struct {
-		ID struct {
-			Eq int `graphql:"_eq"`
-		} `graphql:"id"`
-	}
-
-	var orConditions []IDCondition
-	for _, id := range ids {
-		condition := IDCondition{}
-		condition.ID.Eq = id
-		orConditions = append(orConditions, condition)
-	}
-
+	// Use _in operator to fetch multiple items (simpler than _or)
+	// This generates: where: {id: {_in: [1, 2, 3]}}
 	var q struct {
 		VendingMachineToItems []struct {
 			ID        int    `graphql:"id"`
@@ -93,11 +81,11 @@ func (r *PaymentRepository) FetchVendingMachineItems(ids []int) ([]domain.Vendin
 			Item      struct {
 				Price float64 `graphql:"price"`
 			} `graphql:"vending_machine_item"`
-		} `graphql:"vending_machine_to_items(where: {_or: $orCondition})"`
+		} `graphql:"vending_machine_to_items(where: {id: {_in: $ids}})"`
 	}
 
 	variables := map[string]any{
-		"orCondition": orConditions,
+		"ids": ids,
 	}
 
 	err := r.client.Query(context.Background(), &q, variables)
@@ -234,9 +222,9 @@ func (r *PaymentRepository) UpdateStatusMultiple(texRef string) ([]domain.Vendin
 			Returning []struct {
 				CombinationID        int `graphql:"combination_id"`
 				VendingMachineToItem struct {
-					ID        int     `graphql:"id"`
-					Amount    int     `graphql:"amount"`
-					MotorCode string  `graphql:"motor_code"`
+					ID        int    `graphql:"id"`
+					Amount    int    `graphql:"amount"`
+					MotorCode string `graphql:"motor_code"`
 					Item      struct {
 						Price float64 `graphql:"price"`
 					} `graphql:"vending_machine_item"`
@@ -272,9 +260,10 @@ func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, 
 	chapaConfig := config.NewChapaConfig()
 
 	payload := map[string]interface{}{
-		"amount":                     req.Amount,
-		"currency":                   req.Currency,
-		"tx_ref":                     req.TxRef,
+		"amount":   req.Amount,
+		"currency": req.Currency,
+		"tx_ref":   req.TxRef,
+		// "return_url":                 "vendingapp://vendingapp/payment-callback/" + req.TxRef,
 		"customization[title]":       "Payment for vending machine",
 		"customization[description]": "Payment for vending machine",
 		"meta[vending_machine_id]":   req.VendingMachineID,
