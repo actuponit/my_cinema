@@ -4,7 +4,7 @@ type PaymentRequest struct {
 	Amount           string `json:"amount" validate:"required"`
 	Currency         string `json:"currency" validate:"required,eq=ETB"`
 	TxRef            string `json:"tx_ref"`
-	VendingMachineID int    `json:"vending_machine_id"`
+	VendingMachineID []int  `json:"vending_machine_id"`
 	// Customization Customization `json:"customization"`
 }
 

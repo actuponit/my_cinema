@@ -14,8 +14,11 @@ import (
 
 type PaymentRepositoryInterface interface {
 	FetchVendingMachineItem(id int) (domain.VendingMachineItem, error)
+	FetchVendingMachineItems(ids []int) ([]domain.VendingMachineItem, error)
 	CreateTransaction(texRef string, id int, price float64) error
-	UpdateStatus(texRef string, id int) (error, string)
+	CreateTransactions(texRef string, ids []int, totalPrice float64, amounts map[int]int) error
+	UpdateStatus(texRef string, id int) (string, error)
+	UpdateStatusMultiple(texRef string) ([]domain.VendingMachineItem, error)
 	InitiatePayment(domain.PaymentRequest) (string, error)
 }
 
@@ -34,9 +37,10 @@ func NewPaymentRepository(client *graphql.Client) *PaymentRepository {
 func (r *PaymentRepository) FetchVendingMachineItem(id int) (domain.VendingMachineItem, error) {
 	var q struct {
 		VendingMachineToItemsByPk struct {
-			ID     int `graphql:"id"`
-			Amount int `graphql:"amount"`
-			Item   struct {
+			ID        int    `graphql:"id"`
+			Amount    int    `graphql:"amount"`
+			MotorCode string `graphql:"motor_code"`
+			Item      struct {
 				Price float64 `graphql:"price"`
 			} `graphql:"vending_machine_item"`
 		} `graphql:"vending_machine_to_items_by_pk(id: $id)"`
@@ -59,10 +63,64 @@ func (r *PaymentRepository) FetchVendingMachineItem(id int) (domain.VendingMachi
 	item := q.VendingMachineToItemsByPk
 
 	return domain.VendingMachineItem{
-		ID:     item.ID,
-		Amount: item.Amount,
-		Price:  item.Item.Price,
+		ID:        item.ID,
+		Amount:    item.Amount,
+		Price:     item.Item.Price,
+		MotorCode: item.MotorCode,
 	}, nil
+}
+
+func (r *PaymentRepository) FetchVendingMachineItems(ids []int) ([]domain.VendingMachineItem, error) {
+	// Build the _or condition for multiple IDs
+	type IDCondition struct {
+		ID struct {
+			Eq int `graphql:"_eq"`
+		} `graphql:"id"`
+	}
+
+	var orConditions []IDCondition
+	for _, id := range ids {
+		condition := IDCondition{}
+		condition.ID.Eq = id
+		orConditions = append(orConditions, condition)
+	}
+
+	var q struct {
+		VendingMachineToItems []struct {
+			ID        int    `graphql:"id"`
+			Amount    int    `graphql:"amount"`
+			MotorCode string `graphql:"motor_code"`
+			Item      struct {
+				Price float64 `graphql:"price"`
+			} `graphql:"vending_machine_item"`
+		} `graphql:"vending_machine_to_items(where: {_or: $orCondition})"`
+	}
+
+	variables := map[string]any{
+		"orCondition": orConditions,
+	}
+
+	err := r.client.Query(context.Background(), &q, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if any items were found
+	if len(q.VendingMachineToItems) == 0 {
+		return nil, errors.New("no vending machine items found")
+	}
+
+	var items []domain.VendingMachineItem
+	for _, item := range q.VendingMachineToItems {
+		items = append(items, domain.VendingMachineItem{
+			ID:        item.ID,
+			Amount:    item.Amount,
+			Price:     item.Item.Price,
+			MotorCode: item.MotorCode,
+		})
+	}
+
+	return items, nil
 }
 
 func (r *PaymentRepository) CreateTransaction(texRef string, id int, price float64) error {
@@ -98,7 +156,53 @@ func (r *PaymentRepository) CreateTransaction(texRef string, id int, price float
 	return nil
 }
 
-func (r *PaymentRepository) UpdateStatus(texRef string, id int) (error, string) {
+func (r *PaymentRepository) CreateTransactions(texRef string, ids []int, totalPrice float64, amounts map[int]int) error {
+	// Build the objects array for bulk insert
+	type TransactionObject struct {
+		CombinationID int     `json:"combination_id"`
+		Price         float64 `json:"price"`
+		TexRef        string  `json:"tex_ref"`
+		Amount        int     `json:"amount"`
+	}
+
+	var objects []TransactionObject
+	for _, id := range ids {
+		amount := amounts[id] // Get the specific amount for this item
+		objects = append(objects, TransactionObject{
+			CombinationID: id,
+			Price:         totalPrice,
+			TexRef:        texRef,
+			Amount:        amount,
+		})
+	}
+
+	query := `
+		mutation InsertTransactions($objects: [transactions_insert_input!]!) {
+			insert_transactions(objects: $objects) {
+				affected_rows
+			}
+		}
+	`
+
+	m := struct {
+		InsertTransactions struct {
+			AffectedRows int `graphql:"affected_rows"`
+		} `graphql:"insert_transactions"`
+	}{}
+
+	variables := map[string]any{
+		"objects": objects,
+	}
+
+	err := r.client.Exec(context.Background(), query, &m, variables)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *PaymentRepository) UpdateStatus(texRef string, id int) (string, error) {
 	var m struct {
 		UpdateTransactions struct {
 			Returning []struct {
@@ -118,10 +222,50 @@ func (r *PaymentRepository) UpdateStatus(texRef string, id int) (error, string) 
 
 	err := r.client.Mutate(context.Background(), &m, variables)
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
-	return nil, m.UpdateTransactions.Returning[0].VendingMachineToItem.MotorCode
+	return m.UpdateTransactions.Returning[0].VendingMachineToItem.MotorCode, nil
+}
+
+func (r *PaymentRepository) UpdateStatusMultiple(texRef string) ([]domain.VendingMachineItem, error) {
+	var m struct {
+		UpdateTransactions struct {
+			Returning []struct {
+				CombinationID        int `graphql:"combination_id"`
+				VendingMachineToItem struct {
+					ID        int     `graphql:"id"`
+					Amount    int     `graphql:"amount"`
+					MotorCode string  `graphql:"motor_code"`
+					Item      struct {
+						Price float64 `graphql:"price"`
+					} `graphql:"vending_machine_item"`
+				} `graphql:"vending_machine_to_item"`
+			} `graphql:"returning"`
+			AffectedRows int `graphql:"affected_rows"`
+		} `graphql:"update_transactions(where: {tex_ref: {_eq: $tex_ref}}, _set: {status: true})"`
+	}
+
+	variables := map[string]any{
+		"tex_ref": texRef,
+	}
+
+	err := r.client.Mutate(context.Background(), &m, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []domain.VendingMachineItem
+	for _, transaction := range m.UpdateTransactions.Returning {
+		items = append(items, domain.VendingMachineItem{
+			ID:        transaction.VendingMachineToItem.ID,
+			Amount:    transaction.VendingMachineToItem.Amount,
+			MotorCode: transaction.VendingMachineToItem.MotorCode,
+			Price:     transaction.VendingMachineToItem.Item.Price,
+		})
+	}
+
+	return items, nil
 }
 
 func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, error) {

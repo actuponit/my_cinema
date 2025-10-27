@@ -124,7 +124,7 @@ func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
 func (pc *PaymentController) TestGraphqlAction(c *gin.Context) {
 	// Define the request structure
 	var reqBody struct {
-		Id int `json:"id"`
+		Items []domain.ItemRequest `json:"items"`
 	}
 
 	// Bind the JSON request body
@@ -133,8 +133,14 @@ func (pc *PaymentController) TestGraphqlAction(c *gin.Context) {
 		return
 	}
 
+	// Validate that items list is not empty
+	if len(reqBody.Items) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "items list cannot be empty"})
+		return
+	}
+
 	// Print the request
-	paymentResponse, err := pc.paymentService.InitiatePayment(reqBody.Id)
+	paymentResponse, err := pc.paymentService.InitiatePayment(reqBody.Items)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

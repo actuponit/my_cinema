@@ -11,7 +11,7 @@ import (
 )
 
 type PaymentServiceInterface interface {
-	InitiatePayment(id int) (domain.PaymentResponse, error)
+	InitiatePayment(items []domain.ItemRequest) (domain.PaymentResponse, error)
 	HandleWebhook(webhookData map[string]any) error
 }
 
@@ -27,16 +27,55 @@ func NewPaymentService(repo repositories.PaymentRepositoryInterface, vendingMach
 	}
 }
 
-func (s *PaymentService) InitiatePayment(id int) (domain.PaymentResponse, error) {
-	item, err := s.repo.FetchVendingMachineItem(id)
+func (s *PaymentService) InitiatePayment(items []domain.ItemRequest) (domain.PaymentResponse, error) {
+	// Extract item IDs from the request
+	var itemIDs []int
+	requestedAmounts := make(map[int]int) // Map to store requested amounts per item
+	for _, item := range items {
+		itemIDs = append(itemIDs, item.ItemID)
+		requestedAmounts[item.ItemID] = item.Amount
+	}
+
+	// Fetch all vending machine items using _or condition
+	vendingItems, err := s.repo.FetchVendingMachineItems(itemIDs)
 	if err != nil {
-		log.Printf("Failed to fetch vending machine item: %v", err)
+		log.Printf("Failed to fetch vending machine items: %v", err)
 		return domain.PaymentResponse{}, err
 	}
+
+	// Validate that all requested items were found
+	if len(vendingItems) != len(itemIDs) {
+		log.Printf("Some items were not found in the database")
+		return domain.PaymentResponse{}, errors.New("some items not found")
+	}
+
+	// Calculate total price based on requested amounts
+	var totalPrice float64
+	var combinationIDs []int
+	for _, vendingItem := range vendingItems {
+		requestedAmount, ok := requestedAmounts[vendingItem.ID]
+		if !ok {
+			log.Printf("Item %d not found in requested amounts", vendingItem.ID)
+			return domain.PaymentResponse{}, errors.New("item amount mismatch")
+		}
+
+		// Validate that requested amount doesn't exceed available amount
+		if requestedAmount > vendingItem.Amount {
+			log.Printf("Requested amount %d exceeds available amount %d for item %d",
+				requestedAmount, vendingItem.Amount, vendingItem.ID)
+			return domain.PaymentResponse{}, errors.New("insufficient item quantity")
+		}
+
+		totalPrice += vendingItem.Price * float64(requestedAmount)
+		combinationIDs = append(combinationIDs, vendingItem.ID)
+	}
+
+	txRef := uuid.New().String()
 	req := domain.PaymentRequest{
-		Amount:           strconv.FormatFloat(item.Price, 'f', -1, 64),
-		TxRef:            uuid.New().String(),
-		VendingMachineID: id,
+		Amount:           strconv.FormatFloat(totalPrice, 'f', -1, 64),
+		TxRef:            txRef,
+		VendingMachineID: combinationIDs,
+		Currency:         "ETB",
 	}
 
 	// Call repository to initiate payment with Chapa
@@ -46,14 +85,15 @@ func (s *PaymentService) InitiatePayment(id int) (domain.PaymentResponse, error)
 		return domain.PaymentResponse{}, err
 	}
 
-	if err = s.repo.CreateTransaction(req.TxRef, item.ID, item.Price); err != nil {
-		log.Printf("Failed to create transaction: %v", err)
+	// Create transactions for all items with their specific amounts
+	if err = s.repo.CreateTransactions(txRef, combinationIDs, totalPrice, requestedAmounts); err != nil {
+		log.Printf("Failed to create transactions: %v", err)
 		return domain.PaymentResponse{}, err
 	}
 
 	return domain.PaymentResponse{
 		CheckoutURL: checkoutURL,
-		TextRef:     req.TxRef,
+		TextRef:     txRef,
 	}, nil
 }
 
@@ -75,28 +115,28 @@ func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {
 		return errors.New("payment was not successful")
 	}
 
-	// Extract vending machine and item information from metadata
-	// meta, ok := webhookData["meta"].(map[string]any)
-	// if !ok {
-	// 	return errors.New("metadata not found in webhook data")
-	// }
-
-	// // Validate vending machine ID exists in metadata
-	// _, ok = meta["vending_machine_id"].(string)
-	// if !ok {
-	// 	return errors.New("vending machine ID not found in metadata")
-	// }
-
-	// For now, we'll need to get the combination ID from somewhere
-	// This might need to be stored in the webhook metadata or retrieved from a pending transaction
-	// For demonstration, assuming we have this value
-	var combinationID int = 1 // This should come from the webhook data or be retrieved from pending transaction
-
-	// Update transaction status and decrease item amount
-	err, motorCode := s.repo.UpdateStatus(txRef, combinationID)
+	// Update all transaction statuses and get all items with their motor codes
+	items, err := s.repo.UpdateStatusMultiple(txRef)
 	if err != nil {
-		log.Printf("Failed to update transaction status: %v", err)
+		log.Printf("Failed to update transaction statuses: %v", err)
 		return err
+	}
+
+	if len(items) == 0 {
+		log.Printf("No items found for tx_ref: %s", txRef)
+		return errors.New("no items found for the given transaction reference")
+	}
+	// Build comma-separated list of motor codes from items
+	var motorCode string
+	for i := range items {
+		mc := items[i].MotorCode
+		if mc == "" {
+			continue
+		}
+		if motorCode != "" {
+			motorCode += ","
+		}
+		motorCode += mc
 	}
 
 	if err := s.vendingMachineService.SendCommand(0, motorCode); err != nil {
@@ -119,6 +159,6 @@ func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {
 	// 	}
 	// }
 
-	log.Printf("Successfully processed webhook for tx_ref: %s", txRef)
+	log.Printf("Successfully processed webhook for tx_ref: %s, dispensed %d items", txRef, len(items))
 	return nil
 }
