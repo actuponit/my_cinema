@@ -130,13 +130,16 @@ func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {
 	var motorCode string
 	for i := range items {
 		mc := items[i].MotorCode
-		if mc == "" {
-			continue
+		for j := 0; j < items[i].Amount; j++ {
+
+			if mc == "" {
+				continue
+			}
+			if motorCode != "" {
+				motorCode += ","
+			}
+			motorCode += mc
 		}
-		if motorCode != "" {
-			motorCode += ","
-		}
-		motorCode += mc
 	}
 
 	if err := s.vendingMachineService.SendCommand(0, motorCode); err != nil {
