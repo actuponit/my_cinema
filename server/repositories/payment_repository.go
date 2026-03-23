@@ -260,10 +260,10 @@ func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, 
 	chapaConfig := config.NewChapaConfig()
 
 	payload := map[string]interface{}{
-		"amount":   req.Amount,
-		"currency": req.Currency,
-		"tx_ref":   req.TxRef,
-		// "return_url":                 "vendingapp://vendingapp/payment-callback/" + req.TxRef,
+		"amount":                     req.Amount,
+		"currency":                   req.Currency,
+		"tx_ref":                     req.TxRef,
+		"return_url":                 "https://7m4fcuyb1hp2.share.zrok.io/#/payment-webview",
 		"customization[title]":       "Payment for vending machine",
 		"customization[description]": "Payment for vending machine",
 		"meta[vending_machine_id]":   req.VendingMachineID,
