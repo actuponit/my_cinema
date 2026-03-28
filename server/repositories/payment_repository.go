@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/hasura/go-graphql-client"
@@ -263,7 +264,7 @@ func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, 
 		"amount":                     req.Amount,
 		"currency":                   req.Currency,
 		"tx_ref":                     req.TxRef,
-		"return_url":                 "https://7m4fcuyb1hp2.share.zrok.io/#/payment-success",
+		"return_url":                 fmt.Sprintf("https://9n100hj42lv2.share.zrok.io/#/payment-success?machineId=%v", req.VendingMachineID),
 		"customization[title]":       "Payment for vending machine",
 		"customization[description]": "Payment for vending machine",
 		"meta[vending_machine_id]":   req.VendingMachineID,
