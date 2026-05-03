@@ -146,8 +146,10 @@ func (m *MQTTClient) IsConnected() bool {
 // DefaultMQTTConfig returns a default configuration for MQTT
 func DefaultMQTTConfig() config.MQTTConfig {
 	return config.MQTTConfig{
-		BrokerURL: "tcp://test.mosquitto.org:1883",
+		BrokerURL: "tcp://0b8c3235cf1145668f5d9841d803ed68.s1.eu.hivemq.cloud:8883",
 		ClientID:  "",
 		Timeout:   100 * time.Second,
+		Username:  "autosuq",
+		Password:  "Jannatul4dows",
 	}
 }
