@@ -221,9 +221,9 @@ func (r *PaymentRepository) UpdateStatusMultiple(texRef string) ([]domain.Vendin
 		UpdateTransactions struct {
 			Returning []struct {
 				CombinationID        int `graphql:"combination_id"`
+				Amount               int `graphql:"amount"`
 				VendingMachineToItem struct {
 					ID        int    `graphql:"id"`
-					Amount    int    `graphql:"amount"`
 					MotorCode string `graphql:"motor_code"`
 					Item      struct {
 						Price float64 `graphql:"price"`
@@ -247,7 +247,7 @@ func (r *PaymentRepository) UpdateStatusMultiple(texRef string) ([]domain.Vendin
 	for _, transaction := range m.UpdateTransactions.Returning {
 		items = append(items, domain.VendingMachineItem{
 			ID:        transaction.VendingMachineToItem.ID,
-			Amount:    transaction.VendingMachineToItem.Amount,
+			Amount:    transaction.Amount,
 			MotorCode: transaction.VendingMachineToItem.MotorCode,
 			Price:     transaction.VendingMachineToItem.Item.Price,
 		})
