@@ -7,10 +7,22 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/hasura/go-graphql-client"
 )
+
+// parsePrice converts a stringified numeric value returned by Hasura
+// (HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES=true) into a float64.
+func parsePrice(s string) (float64, error) {
+	price, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse price %q: %w", s, err)
+	}
+	return price, nil
+}
 
 type PaymentRepositoryInterface interface {
 	FetchVendingMachineItem(id int) (domain.VendingMachineItem, error)
@@ -41,7 +53,7 @@ func (r *PaymentRepository) FetchVendingMachineItem(id int) (domain.VendingMachi
 			Amount    int    `graphql:"amount"`
 			MotorCode string `graphql:"motor_code"`
 			Item      struct {
-				Price float64 `graphql:"price"`
+				Price string `graphql:"price"`
 			} `graphql:"vending_machine_item"`
 		} `graphql:"vending_machine_to_items_by_pk(id: $id)"`
 	}
@@ -62,10 +74,15 @@ func (r *PaymentRepository) FetchVendingMachineItem(id int) (domain.VendingMachi
 
 	item := q.VendingMachineToItemsByPk
 
+	price, err := parsePrice(item.Item.Price)
+	if err != nil {
+		return domain.VendingMachineItem{}, err
+	}
+
 	return domain.VendingMachineItem{
 		ID:        item.ID,
 		Amount:    item.Amount,
-		Price:     item.Item.Price,
+		Price:     price,
 		MotorCode: item.MotorCode,
 	}, nil
 }
@@ -79,7 +96,7 @@ func (r *PaymentRepository) FetchVendingMachineItems(ids []int) ([]domain.Vendin
 			Amount    int    `graphql:"amount"`
 			MotorCode string `graphql:"motor_code"`
 			Item      struct {
-				Price float64 `graphql:"price"`
+				Price string `graphql:"price"`
 			} `graphql:"vending_machine_item"`
 		} `graphql:"vending_machine_to_items(where: {id: {_in: $ids}})"`
 	}
@@ -100,10 +117,14 @@ func (r *PaymentRepository) FetchVendingMachineItems(ids []int) ([]domain.Vendin
 
 	var items []domain.VendingMachineItem
 	for _, item := range q.VendingMachineToItems {
+		price, err := parsePrice(item.Item.Price)
+		if err != nil {
+			return nil, err
+		}
 		items = append(items, domain.VendingMachineItem{
 			ID:        item.ID,
 			Amount:    item.Amount,
-			Price:     item.Item.Price,
+			Price:     price,
 			MotorCode: item.MotorCode,
 		})
 	}
@@ -226,7 +247,7 @@ func (r *PaymentRepository) UpdateStatusMultiple(texRef string) ([]domain.Vendin
 					ID        int    `graphql:"id"`
 					MotorCode string `graphql:"motor_code"`
 					Item      struct {
-						Price float64 `graphql:"price"`
+						Price string `graphql:"price"`
 					} `graphql:"vending_machine_item"`
 				} `graphql:"vending_machine_to_item"`
 			} `graphql:"returning"`
@@ -245,11 +266,15 @@ func (r *PaymentRepository) UpdateStatusMultiple(texRef string) ([]domain.Vendin
 
 	var items []domain.VendingMachineItem
 	for _, transaction := range m.UpdateTransactions.Returning {
+		price, err := parsePrice(transaction.VendingMachineToItem.Item.Price)
+		if err != nil {
+			return nil, err
+		}
 		items = append(items, domain.VendingMachineItem{
 			ID:        transaction.VendingMachineToItem.ID,
 			Amount:    transaction.Amount,
 			MotorCode: transaction.VendingMachineToItem.MotorCode,
-			Price:     transaction.VendingMachineToItem.Item.Price,
+			Price:     price,
 		})
 	}
 
