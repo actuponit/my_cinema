@@ -2,67 +2,96 @@ services:
   postgres:
     image: postgres:15
     restart: always
+    ports:
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
     environment:
-      POSTGRES_PASSWORD: postgrespassword
-  go-server:
-    build:
-      context: ./server  # Root directory, where the Dockerfile is located
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - HASURA_GRAPHQL_ENDPOINT=${HASURA_GRAPHQL_ENDPOINT}
-      - HASURA_GRAPHQL_ADMIN_SECRET=${HASURA_GRAPHQL_ADMIN_SECRET}
-      - JWT_SECRET=${JWT_SECRET}
-      - PORT=${PORT}
-      - CHAPA_SECRET_KEY=${CHAPA_SECRET_KEY}
-      - CHAPA_WEBHOOK_SECRET=${CHAPA_WEBHOOK_SECRET}
-    volumes:
-      - uploads:/usr/src/app/uploads
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${POSTGRES_DB:-my_cinema}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-my_cinema}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   graphql-engine:
-    image: hasura/graphql-engine:v2.46.0
+    image: hasura/graphql-engine:v2.46.0.cli-migrations-v3
     ports:
       - "8000:8080"
     restart: always
     environment:
       ## postgres database to store Hasura metadata
-      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgresql://my_cinema_owner:9irJ6ePbELqu@ep-crimson-sun-a5h79su9.us-east-2.aws.neon.tech/my_cinema?sslmode=require
-      ## this env var can be used to add the above postgres database to Hasura as a data source. this can be removed/updated based on your needs
-      PG_DATABASE_URL: postgresql://my_cinema_owner:9irJ6ePbELqu@ep-crimson-sun-a5h79su9.us-east-2.aws.neon.tech/my_cinema?sslmode=require
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: ${HASURA_GRAPHQL_METADATA_DATABASE_URL:-postgresql://postgres:postgrespassword@postgres:5432/my_cinema}
+      ## this env var can be used to add the above postgres database to Hasura as a data source
+      PG_DATABASE_URL: ${PG_DATABASE_URL:-postgresql://postgres:postgrespassword@postgres:5432/my_cinema}
       ## enable the console served by server
-      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
-      ## enable debugging mode. It is recommended to disable this in production
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      ## enable debugging mode
       HASURA_GRAPHQL_DEV_MODE: "true"
-      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
-      ## uncomment next line to run console offline (i.e load console assets from server instead of CDN)
-      # HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
-      ## uncomment next line to set an admin secret
-      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-myadminsecretkey}
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: anonymous
-      HASURA_GRAPHQL_JWT_SECRET: '{ "type": "HS256", "key": "oursupersecretsupersecurekey1234567890" }'
+      HASURA_GRAPHQL_JWT_SECRET: '{ "type": "HS256", "key": "${HASURA_JWT_KEY:-oursupersecretsupersecurekey1234567890}" }'
+      ACTION_SECRET: ${HASURA_ACTION_SECRET:-change-me}
       WEB_HOOK_URL: http://go-server:3000
       HASURA_GRAPHQL_METADATA_DEFAULTS: '{"backend_configs":{"dataconnector":{"athena":{"uri":"http://data-connector-agent:8081/api/v1/athena"},"mariadb":{"uri":"http://data-connector-agent:8081/api/v1/mariadb"},"mysql8":{"uri":"http://data-connector-agent:8081/api/v1/mysql"},"oracle":{"uri":"http://data-connector-agent:8081/api/v1/oracle"},"snowflake":{"uri":"http://data-connector-agent:8081/api/v1/snowflake"}}}}'
+    volumes:
+      - ./hasura/metadata:/hasura-metadata
     depends_on:
+      postgres:
+        condition: service_healthy
       data-connector-agent:
         condition: service_healthy
+
+  go-server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - graphql-engine
+    environment:
+      - PORT=3000
+      - HASURA_GRAPHQL_ENDPOINT=http://graphql-engine:8080/v1/graphql
+      - HASURA_GRAPHQL_ADMIN_SECRET=${HASURA_GRAPHQL_ADMIN_SECRET:-myadminsecretkey}
+      - JWT_SECRET=${JWT_SECRET:-jwt-secret-key}
+      - CHAPA_SECRET_KEY=${CHAPA_SECRET_KEY:-chapa-secret-key}
+      - CHAPA_WEBHOOK_SECRET=${CHAPA_WEBHOOK_SECRET:-chapa-webhook-secret}
+      - SUPABASE_URL=${SUPABASE_URL:-https://weunvxrpkfeznuodhhye.supabase.co}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET:-supabase-jwt-secret}
+      - VERIFY_API_BASE_URL=${VERIFY_API_BASE_URL:-https://checkoutapi.verify.et}
+      - VERIFY_API_KEY=${VERIFY_API_KEY:-vchk_test}
+      - VERIFY_WEBHOOK_SECRET=${VERIFY_WEBHOOK_SECRET:-whsec_test}
+      - WALLET_WEB_URL=${WALLET_WEB_URL:-http://localhost:3001}
+      - HASURA_ACTION_SECRET=${HASURA_ACTION_SECRET:-change-me}
+      - MQTT_BROKER_URL=${MQTT_BROKER_URL:-tcp://test.mosquitto.org:1883}
+      - MQTT_CLIENT_ID=${MQTT_CLIENT_ID:-cinema-server}
+      - MQTT_USERNAME=${MQTT_USERNAME:-}
+      - MQTT_PASSWORD=${MQTT_PASSWORD:-}
+      - MQTT_TIMEOUT_SECONDS=${MQTT_TIMEOUT_SECONDS:-30}
+      - CLOUDINARY_URL=${CLOUDINARY_URL:-}
+    volumes:
+      - uploads:/usr/src/app/uploads
+
   data-connector-agent:
     image: hasura/graphql-data-connector:v2.46.0
     restart: always
     ports:
-      - 8081:8081
+      - "8081:8081"
     environment:
-      QUARKUS_LOG_LEVEL: ERROR # FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-      ## https://quarkus.io/guides/opentelemetry#configuration-reference
+      QUARKUS_LOG_LEVEL: ERROR
       QUARKUS_OPENTELEMETRY_ENABLED: "false"
-      ## QUARKUS_OPENTELEMETRY_TRACER_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/api/v1/athena/health"]
       interval: 5s
       timeout: 10s
       retries: 5
       start_period: 5s
+
 volumes:
   db_data:
   uploads:

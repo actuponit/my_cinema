@@ -1,0 +1,5 @@
+- "!include public_wallet_onboard.yaml"
+- "!include public_wallet_apply_deposit.yaml"
+- "!include public_wallet_pay.yaml"
+- "!include public_machine_login_failed.yaml"
+- "!include public_chapa_mark_paid.yaml"

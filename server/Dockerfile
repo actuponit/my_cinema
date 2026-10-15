@@ -8,13 +8,13 @@ WORKDIR /usr/src/app
 COPY go.mod go.sum ./
 
 # Download dependencies
-RUN go mod download & go mod verify
+RUN go mod download && go mod verify
 
 # Copy the rest of the application code
 COPY . .
 
 # Build the Go server binary
-RUN go build -v -o /usr/local/bin/ ./...
+RUN go build -v -o /usr/local/bin/cinema-server ./delivery/main.go
 
 # Start the Go server
-CMD ["/usr/local/bin/delivery"]
+CMD ["/usr/local/bin/cinema-server"]

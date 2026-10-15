@@ -1,0 +1,5 @@
+function:
+  name: wallet_onboard
+  schema: public
+configuration:
+  exposed_as: mutation

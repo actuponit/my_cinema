@@ -1,0 +1,19 @@
+table:
+  name: contact_support
+  schema: public
+object_relationships:
+  - name: vending_machine
+    using:
+      foreign_key_constraint_on: vending_machine_id
+insert_permissions:
+  - role: anonymous
+    permission:
+      check: {}
+      columns:
+        - created_at
+        - message
+        - subject
+        - updated_at
+        - user_id
+        - vending_machine_id
+    comment: ""

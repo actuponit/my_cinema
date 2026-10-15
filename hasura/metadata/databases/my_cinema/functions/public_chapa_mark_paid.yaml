@@ -1,0 +1,5 @@
+function:
+  name: chapa_mark_paid
+  schema: public
+configuration:
+  exposed_as: mutation

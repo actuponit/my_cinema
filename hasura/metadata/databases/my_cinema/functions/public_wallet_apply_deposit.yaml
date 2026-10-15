@@ -1,0 +1,5 @@
+function:
+  name: wallet_apply_deposit
+  schema: public
+configuration:
+  exposed_as: mutation

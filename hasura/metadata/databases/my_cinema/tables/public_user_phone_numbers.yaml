@@ -1,0 +1,15 @@
+table:
+  name: user_phone_numbers
+  schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - is_primary
+        - label
+        - phone
+        - created_at
+        - id
+        - user_id
+      filter: {}
+    comment: ""

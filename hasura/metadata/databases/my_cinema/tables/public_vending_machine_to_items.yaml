@@ -12,8 +12,9 @@ select_permissions:
   - role: anonymous
     permission:
       columns:
-        - id
         - amount
+        - capacity
+        - id
         - item_id
         - machine_id
       filter: {}

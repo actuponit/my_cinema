@@ -1,0 +1,5 @@
+function:
+  name: machine_login_failed
+  schema: public
+configuration:
+  exposed_as: mutation

@@ -12,6 +12,12 @@ type Mutation {
 }
 
 type Mutation {
+  payWithWallet(
+    arg: PayWithWalletInput!
+  ): PayWithWalletOutput!
+}
+
+type Mutation {
   signup(
     arg1: UserInput!
   ): UserOutput!
@@ -25,7 +31,19 @@ input UserInput {
 }
 
 input InitiateTransactionInput {
-  id: Int!
+  items: [ItemRequestInput!]!
+}
+
+input PayWithWalletInput {
+  machine_id: String!
+  username: String!
+  password: String!
+  items: [ItemRequestInput!]!
+}
+
+input ItemRequestInput {
+  item_id: Int!
+  amount: Int!
 }
 
 type UserOutput {
@@ -50,3 +68,10 @@ type InitiateTransactionOutput {
   textRef: String!
 }
 
+type PayWithWalletOutput {
+  status: String!
+  message: String!
+  txRef: String
+  total: String
+  balance: String
+}
