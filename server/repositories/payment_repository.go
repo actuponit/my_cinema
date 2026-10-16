@@ -8,7 +8,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/hasura/go-graphql-client"
@@ -28,10 +30,11 @@ type PaymentRepositoryInterface interface {
 	FetchVendingMachineItem(id int) (domain.VendingMachineItem, error)
 	FetchVendingMachineItems(ids []int) ([]domain.VendingMachineItem, error)
 	CreateTransaction(texRef string, id int, price float64) error
-	CreateTransactions(texRef string, ids []int, totalPrice float64, amounts map[int]int) error
-	UpdateStatus(texRef string, id int) (string, error)
-	UpdateStatusMultiple(texRef string) ([]domain.VendingMachineItem, error)
+	CreateTransactions(texRef string, items []domain.VendingMachineItem, amounts map[int]int) error
 	InitiatePayment(domain.PaymentRequest) (string, error)
+	VerifyChapaTransaction(txRef string) (domain.ChapaVerification, error)
+	FetchBasket(texRef string) ([]domain.BasketLine, error)
+	MarkChapaPaid(texRef string) ([]domain.VendingMachineItem, error)
 }
 
 type PaymentRepository struct {
@@ -165,7 +168,8 @@ func (r *PaymentRepository) CreateTransaction(texRef string, id int, price float
 	return nil
 }
 
-func (r *PaymentRepository) CreateTransactions(texRef string, ids []int, totalPrice float64, amounts map[int]int) error {
+// CreateTransactions stores one row per slot with that slot's unit price.
+func (r *PaymentRepository) CreateTransactions(texRef string, items []domain.VendingMachineItem, amounts map[int]int) error {
 	// Build the objects array for bulk insert
 	type TransactionObject struct {
 		CombinationID int     `json:"combination_id"`
@@ -175,13 +179,12 @@ func (r *PaymentRepository) CreateTransactions(texRef string, ids []int, totalPr
 	}
 
 	var objects []TransactionObject
-	for _, id := range ids {
-		amount := amounts[id] // Get the specific amount for this item
+	for _, item := range items {
 		objects = append(objects, TransactionObject{
-			CombinationID: id,
-			Price:         totalPrice,
+			CombinationID: item.ID,
+			Price:         item.Price,
 			TexRef:        texRef,
-			Amount:        amount,
+			Amount:        amounts[item.ID],
 		})
 	}
 
@@ -209,76 +212,6 @@ func (r *PaymentRepository) CreateTransactions(texRef string, ids []int, totalPr
 	}
 
 	return nil
-}
-
-func (r *PaymentRepository) UpdateStatus(texRef string, id int) (string, error) {
-	var m struct {
-		UpdateTransactions struct {
-			Returning []struct {
-				CombinationID        int `graphql:"combination_id"`
-				VendingMachineToItem struct {
-					MotorCode string `graphql:"motor_code"`
-				} `graphql:"vending_machine_to_item"`
-			} `graphql:"returning"`
-			AffectedRows int `graphql:"affected_rows"`
-		} `graphql:"update_transactions(where: {tex_ref: {_eq: $tex_ref}}, _set: {status: true})"`
-	}
-
-	variables := map[string]any{
-		"tex_ref": texRef,
-		// "id":      id,
-	}
-
-	err := r.client.Mutate(context.Background(), &m, variables)
-	if err != nil {
-		return "", err
-	}
-
-	return m.UpdateTransactions.Returning[0].VendingMachineToItem.MotorCode, nil
-}
-
-func (r *PaymentRepository) UpdateStatusMultiple(texRef string) ([]domain.VendingMachineItem, error) {
-	var m struct {
-		UpdateTransactions struct {
-			Returning []struct {
-				CombinationID        int `graphql:"combination_id"`
-				Amount               int `graphql:"amount"`
-				VendingMachineToItem struct {
-					ID        int    `graphql:"id"`
-					MotorCode string `graphql:"motor_code"`
-					Item      struct {
-						Price string `graphql:"price"`
-					} `graphql:"vending_machine_item"`
-				} `graphql:"vending_machine_to_item"`
-			} `graphql:"returning"`
-			AffectedRows int `graphql:"affected_rows"`
-		} `graphql:"update_transactions(where: {tex_ref: {_eq: $tex_ref}}, _set: {status: true})"`
-	}
-
-	variables := map[string]any{
-		"tex_ref": texRef,
-	}
-
-	err := r.client.Mutate(context.Background(), &m, variables)
-	if err != nil {
-		return nil, err
-	}
-
-	var items []domain.VendingMachineItem
-	for _, transaction := range m.UpdateTransactions.Returning {
-		price, err := parsePrice(transaction.VendingMachineToItem.Item.Price)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, domain.VendingMachineItem{
-			ID:        transaction.VendingMachineToItem.ID,
-			Amount:    transaction.Amount,
-			MotorCode: transaction.VendingMachineToItem.MotorCode,
-			Price:     price,
-		})
-	}
-
-	return items, nil
 }
 
 func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, error) {
@@ -329,4 +262,84 @@ func (r *PaymentRepository) InitiatePayment(req domain.PaymentRequest) (string, 
 	}
 
 	return "", errors.New("checkout URL not found in response")
+}
+
+func (r *PaymentRepository) VerifyChapaTransaction(txRef string) (domain.ChapaVerification, error) {
+	chapaConfig := config.NewChapaConfig()
+	req, err := http.NewRequest(http.MethodGet, chapaConfig.BaseURL+"transaction/verify/"+url.PathEscape(txRef), nil)
+	if err != nil {
+		return domain.ChapaVerification{}, err
+	}
+	req.Header.Set("Authorization", "Bearer "+chapaConfig.SecretKey)
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return domain.ChapaVerification{}, fmt.Errorf("chapa verify %s: %w", txRef, err)
+	}
+	defer resp.Body.Close()
+
+	var body struct {
+		Message string `json:"message"`
+		Data    *struct {
+			Status   string      `json:"status"`
+			Amount   json.Number `json:"amount"`
+			Currency string      `json:"currency"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&body); err != nil {
+		return domain.ChapaVerification{}, fmt.Errorf("chapa verify %s: HTTP %d: %w", txRef, resp.StatusCode, err)
+	}
+	if resp.StatusCode != http.StatusOK || body.Data == nil {
+		return domain.ChapaVerification{}, fmt.Errorf("chapa verify %s: HTTP %d: %s", txRef, resp.StatusCode, body.Message)
+	}
+	return domain.ChapaVerification{Status: body.Data.Status, Amount: body.Data.Amount.String(), Currency: body.Data.Currency}, nil
+}
+
+func (r *PaymentRepository) FetchBasket(texRef string) ([]domain.BasketLine, error) {
+	var out struct {
+		Rows []domain.BasketLine `json:"transactions"`
+	}
+	data, err := r.client.ExecRaw(context.Background(),
+		`query($t: String!) { transactions(where: {tex_ref: {_eq: $t}}) { price amount } }`,
+		map[string]any{"t": texRef})
+	if err != nil {
+		return nil, fmt.Errorf("fetch basket %s: %w", texRef, err)
+	}
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode basket %s: %w", texRef, err)
+	}
+	return out.Rows, nil
+}
+
+// MarkChapaPaid flips the basket to paid exactly once (chapa_mark_paid). An empty result means
+// it was already processed and must not be dispensed again.
+func (r *PaymentRepository) MarkChapaPaid(texRef string) ([]domain.VendingMachineItem, error) {
+	var out struct {
+		Rows []struct {
+			CombinationID int  `json:"combination_id"`
+			Amount        *int `json:"amount"`
+			Slot          struct {
+				MotorCode string `json:"motor_code"`
+			} `json:"vending_machine_to_item"`
+		} `json:"chapa_mark_paid"`
+	}
+	data, err := r.client.ExecRaw(context.Background(),
+		`mutation($t: String!) {
+			chapa_mark_paid(args: {p_tex_ref: $t}) { combination_id amount vending_machine_to_item { motor_code } }
+		}`, map[string]any{"t": texRef})
+	if err != nil {
+		return nil, fmt.Errorf("chapa_mark_paid %s: %w", texRef, err)
+	}
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, fmt.Errorf("decode chapa_mark_paid %s: %w", texRef, err)
+	}
+	items := make([]domain.VendingMachineItem, len(out.Rows))
+	for i, row := range out.Rows {
+		amount := 1
+		if row.Amount != nil {
+			amount = *row.Amount
+		}
+		items[i] = domain.VendingMachineItem{ID: row.CombinationID, Amount: amount, MotorCode: row.Slot.MotorCode}
+	}
+	return items, nil
 }

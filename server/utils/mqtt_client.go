@@ -2,6 +2,7 @@ package utils
 
 import (
 	"cinema-server/config"
+	"fmt"
 	"log"
 	"time"
 
@@ -20,41 +21,6 @@ type MQTTClientInterface interface {
 // MQTTClient implements MQTT operations
 type MQTTClient struct {
 	client mqtt.Client
-	opts   *mqtt.ClientOptions
-}
-
-// NewMQTTClient creates a new MQTT client instance
-func NewMQTTClient(config config.MQTTConfig) *MQTTClient {
-	opts := mqtt.NewClientOptions().AddBroker(config.BrokerURL)
-
-	if config.ClientID != "" {
-		opts.SetClientID(config.ClientID)
-	}
-
-	if config.Username != "" {
-		opts.SetUsername(config.Username)
-		opts.SetPassword(config.Password)
-	}
-
-	opts.SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
-		log.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
-	})
-
-	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
-		log.Printf("Connection lost: %v", err)
-	})
-
-	opts.SetOnConnectHandler(func(client mqtt.Client) {
-		log.Println("Connected to MQTT broker")
-	})
-
-	opts.SetAutoReconnect(true)
-	opts.SetMaxReconnectInterval(1 * time.Minute)
-	opts.SetConnectTimeout(config.Timeout)
-
-	return &MQTTClient{
-		opts: opts,
-	}
 }
 
 // NewMQTTClientFromConfig creates a new MQTT client instance from config.MQTTConfig
@@ -83,17 +49,17 @@ func NewMQTTClientFromConfig(config config.MQTTConfig) *MQTTClient {
 	})
 
 	opts.SetAutoReconnect(true)
+	opts.SetConnectRetry(true)
 	opts.SetMaxReconnectInterval(1 * time.Minute)
 	opts.SetConnectTimeout(config.Timeout)
 
 	return &MQTTClient{
-		opts: opts,
+		client: mqtt.NewClient(opts),
 	}
 }
 
-// Connect establishes connection to MQTT broker
+// Connect blocks until the first connection succeeds; failed attempts are retried in the background.
 func (m *MQTTClient) Connect() error {
-	m.client = mqtt.NewClient(m.opts)
 	token := m.client.Connect()
 	if token.Wait() && token.Error() != nil {
 		return token.Error()
@@ -114,9 +80,12 @@ func (m *MQTTClient) Publish(topic, message string) error {
 		return mqtt.ErrNotConnected
 	}
 
-	token := m.client.Publish(topic, 0, false, message)
-	if token.Wait() && token.Error() != nil {
-		return token.Error()
+	token := m.client.Publish(topic, 1, false, message)
+	if !token.WaitTimeout(5 * time.Second) {
+		return fmt.Errorf("publish to %s timed out", topic)
+	}
+	if err := token.Error(); err != nil {
+		return err
 	}
 
 	log.Printf("Published message to topic %s: %s", topic, message)
@@ -141,15 +110,4 @@ func (m *MQTTClient) Subscribe(topic string, handler mqtt.MessageHandler) error 
 // IsConnected checks if the client is connected to the broker
 func (m *MQTTClient) IsConnected() bool {
 	return m.client != nil && m.client.IsConnected()
-}
-
-// DefaultMQTTConfig returns a default configuration for MQTT
-func DefaultMQTTConfig() config.MQTTConfig {
-	return config.MQTTConfig{
-		BrokerURL: "mqtts://0b8c3235cf1145668f5d9841d803ed68.s1.eu.hivemq.cloud:8883",
-		ClientID:  "",
-		Timeout:   100 * time.Second,
-		Username:  "autosuq",
-		Password:  "Jannatul4dows",
-	}
 }

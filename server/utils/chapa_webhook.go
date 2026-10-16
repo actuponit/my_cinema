@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"os"
 )
@@ -30,14 +29,4 @@ func VerifyChapaWebhookSignature(requestBody []byte, signature string) error {
 	}
 
 	return nil
-}
-
-// VerifyChapaWebhookSignatureFromMap verifies the Chapa webhook signature from a map
-func VerifyChapaWebhookSignatureFromMap(requestBody map[string]interface{}, signature string) error {
-	jsonBytes, err := json.Marshal(requestBody)
-	if err != nil {
-		return fmt.Errorf("failed to marshal request body: %v", err)
-	}
-
-	return VerifyChapaWebhookSignature(jsonBytes, signature)
 }

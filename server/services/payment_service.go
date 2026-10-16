@@ -5,14 +5,16 @@ import (
 	"cinema-server/repositories"
 	"errors"
 	"log"
+	"math/big"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
 
 type PaymentServiceInterface interface {
 	InitiatePayment(items []domain.ItemRequest) (domain.PaymentResponse, error)
-	HandleWebhook(webhookData map[string]any) error
+	HandleWebhook(txRef string) error
 }
 
 type PaymentService struct {
@@ -51,7 +53,6 @@ func (s *PaymentService) InitiatePayment(items []domain.ItemRequest) (domain.Pay
 
 	// Calculate total price based on requested amounts
 	var totalPrice float64
-	var combinationIDs []int
 	for _, vendingItem := range vendingItems {
 		requestedAmount, ok := requestedAmounts[vendingItem.ID]
 		if !ok {
@@ -67,14 +68,13 @@ func (s *PaymentService) InitiatePayment(items []domain.ItemRequest) (domain.Pay
 		}
 
 		totalPrice += vendingItem.Price * float64(requestedAmount)
-		combinationIDs = append(combinationIDs, vendingItem.ID)
 	}
 
 	txRef := uuid.New().String()
 	req := domain.PaymentRequest{
-		Amount:           strconv.FormatFloat(totalPrice, 'f', -1, 64),
+		Amount:           strconv.FormatFloat(totalPrice, 'f', 2, 64),
 		TxRef:            txRef,
-		VendingMachineID: combinationIDs,
+		VendingMachineID: itemIDs,
 		Currency:         "ETB",
 	}
 
@@ -86,7 +86,7 @@ func (s *PaymentService) InitiatePayment(items []domain.ItemRequest) (domain.Pay
 	}
 
 	// Create transactions for all items with their specific amounts
-	if err = s.repo.CreateTransactions(txRef, combinationIDs, totalPrice, requestedAmounts); err != nil {
+	if err = s.repo.CreateTransactions(txRef, vendingItems, requestedAmounts); err != nil {
 		log.Printf("Failed to create transactions: %v", err)
 		return domain.PaymentResponse{}, err
 	}
@@ -97,71 +97,72 @@ func (s *PaymentService) InitiatePayment(items []domain.ItemRequest) (domain.Pay
 	}, nil
 }
 
-func (s *PaymentService) HandleWebhook(webhookData map[string]any) error {
-	// Extract required data from webhook
-	txRef, ok := webhookData["tx_ref"].(string)
-	if !ok {
+// HandleWebhook re-verifies the payment with Chapa and dispenses the basket exactly once.
+// It returns nil for payments that must not be retried (unpaid, mismatched, already dispensed).
+func (s *PaymentService) HandleWebhook(txRef string) error {
+	if txRef == "" {
 		return errors.New("transaction reference not found in webhook data")
 	}
 
-	status, ok := webhookData["status"].(string)
-	if !ok {
-		return errors.New("status not found in webhook data")
-	}
-
-	// Check if payment was successful
-	if status != "success" {
-		log.Printf("Payment failed for tx_ref: %s, status: %s", txRef, status)
-		return errors.New("payment was not successful")
-	}
-
-	// Update all transaction statuses and get all items with their motor codes
-	items, err := s.repo.UpdateStatusMultiple(txRef)
+	v, err := s.repo.VerifyChapaTransaction(txRef)
 	if err != nil {
-		log.Printf("Failed to update transaction statuses: %v", err)
 		return err
 	}
-
-	if len(items) == 0 {
-		log.Printf("No items found for tx_ref: %s", txRef)
-		return errors.New("no items found for the given transaction reference")
+	if v.Status != "success" || v.Currency != "ETB" {
+		log.Printf("chapa tx_ref=%s not paid: status=%s currency=%s", txRef, v.Status, v.Currency)
+		return nil
 	}
-	// Build comma-separated list of motor codes from items
-	var motorCode string
-	for i := range items {
-		mc := items[i].MotorCode
-		for j := 0; j < items[i].Amount; j++ {
 
-			if mc == "" {
-				continue
-			}
-			if motorCode != "" {
-				motorCode += ","
-			}
-			motorCode += mc
+	basket, err := s.repo.FetchBasket(txRef)
+	if err != nil {
+		return err
+	}
+	expected, ok := basketTotal(basket)
+	paid, okPaid := new(big.Rat).SetString(v.Amount)
+	if !ok || !okPaid || len(basket) == 0 || expected.Cmp(paid) != 0 {
+		log.Printf("ERROR chapa tx_ref=%s amount mismatch: paid=%s basket=%d rows", txRef, v.Amount, len(basket))
+		return nil
+	}
+
+	items, err := s.repo.MarkChapaPaid(txRef)
+	if err != nil {
+		return err
+	}
+	if len(items) == 0 {
+		log.Printf("chapa tx_ref=%s already processed", txRef)
+		return nil
+	}
+
+	var codes []string
+	for _, item := range items {
+		for j := 0; j < item.Amount && item.MotorCode != ""; j++ {
+			codes = append(codes, item.MotorCode)
 		}
 	}
-
-	if err := s.vendingMachineService.SendCommand(0, motorCode); err != nil {
-		log.Printf("Failed to start motor for vending machine %s: %v", motorCode, err)
-		// Don't return error here as the payment was successful
-		// Just log the issue for monitoring
-	} else {
-		log.Printf("Successfully started motor for vending machine %s", motorCode)
+	if len(codes) == 0 {
+		log.Printf("ERROR chapa tx_ref=%s: paid but no motor codes to dispense", txRef)
+		return nil
 	}
-
-	// Extract vending machine ID from metadata and start the motor
-	// if vendingMachineIDStr, ok := meta["vending_machine_id"].(string); ok {
-	// 	// Convert string to int (you might want to add proper error handling here)
-	// 	// For now, assuming it's a valid integer string
-	// 	if vendingMachineID, err := strconv.ParseInt(vendingMachineIDStr, 10, 64); err == nil {
-	// 		// Start the motor to dispense the item
-
-	// 	} else {
-	// 		log.Printf("Invalid vending machine ID format: %s", vendingMachineIDStr)
-	// 	}
-	// }
-
-	log.Printf("Successfully processed webhook for tx_ref: %s, dispensed %d items", txRef, len(items))
+	if err := s.vendingMachineService.SendCommand(strings.Join(codes, ",")); err != nil {
+		// Paid and marked; don't fail the webhook (a retry would not dispense again anyway).
+		log.Printf("ERROR chapa dispense failed tx_ref=%s: %v", txRef, err)
+	}
 	return nil
+}
+
+// basketTotal is sum(price * coalesce(amount, 1)), in exact decimals.
+func basketTotal(lines []domain.BasketLine) (*big.Rat, bool) {
+	total := new(big.Rat)
+	for _, l := range lines {
+		price, ok := new(big.Rat).SetString(l.Price)
+		if !ok {
+			return nil, false
+		}
+		qty := int64(1)
+		if l.Amount != nil {
+			qty = int64(*l.Amount)
+		}
+		total.Add(total, price.Mul(price, big.NewRat(qty, 1)))
+	}
+	return total, true
 }

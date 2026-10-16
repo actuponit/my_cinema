@@ -5,8 +5,9 @@ import (
 	"cinema-server/config"
 	"cinema-server/domain"
 	"cinema-server/services"
+	"cinema-server/utils"
 	"encoding/json"
-	"fmt"
+	"io"
 	"log"
 	"net/http"
 
@@ -82,42 +83,30 @@ func (pc *PaymentController) InitiatePayment(c *gin.Context) {
 }
 
 func (pc *PaymentController) ChapaWebhook(c *gin.Context) {
-	// Handle Chapa webhook
-	var reqBody map[string]any
-	if err := c.ShouldBindJSON(&reqBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Verify webhook signature
-	signature := c.GetHeader("chapa-signature")
-	// signature2 := c.GetHeader("x-chapa-signature")
-	if signature == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Chapa-Signature header"})
-		return
-	}
-
-	// Verify the webhook signature
-	// if err := utils.VerifyChapaWebhookSignatureFromMap(reqBody, signature, signature2); err != nil {
-	// 	log.Printf("Webhook signature verification failed: %v", err)
-	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid webhook signature"})
-	// 	return
-	// }
-
-	reqBodyJSON, err := json.Marshal(reqBody)
+	raw, err := io.ReadAll(http.MaxBytesReader(c.Writer, c.Request.Body, 256<<10))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal request body"})
+		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "Body too large"})
+		return
+	}
+	if err := utils.VerifyChapaWebhookSignature(raw, c.GetHeader("x-chapa-signature")); err != nil {
+		log.Printf("Chapa webhook rejected: %v", err)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid webhook signature"})
 		return
 	}
 
-	// Process the webhook through the payment service
-	if err := pc.paymentService.HandleWebhook(reqBody); err != nil {
-		log.Printf("Failed to handle webhook: %v", err)
+	var event struct {
+		TxRef string `json:"tx_ref"`
+	}
+	if err := json.Unmarshal(raw, &event); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
+		return
+	}
+
+	if err := pc.paymentService.HandleWebhook(event.TxRef); err != nil {
+		log.Printf("Failed to handle webhook tx_ref=%s: %v", event.TxRef, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process webhook"})
 		return
 	}
-
-	fmt.Println(string(reqBodyJSON))
 	c.JSON(http.StatusOK, gin.H{"message": "Webhook received and processed successfully"})
 }
 

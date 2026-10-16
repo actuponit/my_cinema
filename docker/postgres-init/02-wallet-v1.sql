@@ -80,7 +80,8 @@ CREATE TABLE IF NOT EXISTS public.wallet_topups (
   requested_amount NUMERIC(12,2) CHECK (requested_amount > 0),
   credited_amount  NUMERIC(12,2),
   status           TEXT NOT NULL CHECK (status IN (
-                     'awaiting_transfer','verification_pending','review_required',
+                     'created','assigned','awaiting_transfer','reference_submitted',
+                     'verification_pending','review_required',
                      'succeeded','failed','expired','cancelled')),
   checkout_url     TEXT,
   expires_at       TIMESTAMPTZ,
@@ -89,7 +90,7 @@ CREATE TABLE IF NOT EXISTS public.wallet_topups (
 );
 CREATE INDEX IF NOT EXISTS wallet_topups_user_created_idx ON public.wallet_topups (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS wallet_topups_open_idx ON public.wallet_topups (created_at)
-  WHERE status IN ('awaiting_transfer','verification_pending','review_required');
+  WHERE status NOT IN ('succeeded','failed','expired','cancelled');
 
 CREATE TABLE IF NOT EXISTS public.wallet_ledger (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -121,8 +122,8 @@ CREATE TABLE IF NOT EXISTS public.machine_credentials (
 CREATE TABLE IF NOT EXISTS public.wallet_pay_result (
   status      TEXT NOT NULL,
   tex_ref     TEXT,
-  total       NUMERIC(12,2),
-  balance     NUMERIC(12,2),
+  total       NUMERIC, -- unconstrained: wallet_pay's early returns yield plain numeric
+  balance     NUMERIC,
   motor_codes TEXT
 );
 
