@@ -1,4 +1,4 @@
-import * as bcrypt from "npm:bcryptjs@2.4.3";
+import bcrypt from "npm:bcryptjs@2.4.3";
 import { handleCors, json } from "../_shared/cors.ts";
 import { parseItems, UUID_REGEX } from "../_shared/items.ts";
 import { closeMQTT, connectMQTT, publishDispense } from "../_shared/mqtt.ts";
@@ -25,10 +25,10 @@ Deno.serve(async (req: Request) => {
   const kioskSecret = Deno.env.get("KIOSK_SECRET");
   if (!kioskSecret) {
     console.error("[wallet-pay] Missing KIOSK_SECRET env var");
-    return json({ code: "misconfigured" }, 500);
+    return json({ code: "misconfigured", message: "Wallet payment is unavailable right now. You were not charged." }, 500);
   }
   if (!constantTimeEqual(req.headers.get("x-kiosk-secret") ?? "", kioskSecret)) {
-    return json({ code: "unauthorized" }, 401);
+    return json({ code: "unauthorized", message: "This machine isn't set up for wallet payments. You were not charged." }, 401);
   }
 
   try {

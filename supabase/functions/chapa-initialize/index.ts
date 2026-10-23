@@ -2,6 +2,8 @@ import { handleCors, json } from "../_shared/cors.ts";
 import { parseItems, UUID_REGEX } from "../_shared/items.ts";
 import { getSupabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
+const UNAVAILABLE = "Payment is unavailable right now. Please try again.";
+
 // POST { machine_id, items: [{ item_id: <slot id>, amount }] } → { tx_ref, checkout_url }
 Deno.serve(async (req: Request) => {
   const corsResponse = handleCors(req);
@@ -12,7 +14,7 @@ Deno.serve(async (req: Request) => {
     const chapaSecretKey = Deno.env.get("CHAPA_SECRET_KEY");
     if (!chapaSecretKey) {
       console.error("[chapa-initialize] Missing CHAPA_SECRET_KEY env var");
-      return json({ code: "misconfigured" }, 500);
+      return json({ code: "misconfigured", message: UNAVAILABLE }, 500);
     }
 
     const body = await req.json().catch(() => null);
@@ -31,7 +33,7 @@ Deno.serve(async (req: Request) => {
     });
     if (error || !rows?.length) {
       console.error("[chapa-initialize] chapa_create_basket failed:", error);
-      return json({ code: "internal_error" }, 500);
+      return json({ code: "internal_error", message: UNAVAILABLE }, 500);
     }
     const { status, total } = rows[0];
     if (status === "OUT_OF_STOCK") {
@@ -62,6 +64,6 @@ Deno.serve(async (req: Request) => {
     return json({ tx_ref: txRef, checkout_url: checkoutUrl });
   } catch (err) {
     console.error("[chapa-initialize] Exception:", err);
-    return json({ code: "internal_error" }, 500);
+    return json({ code: "internal_error", message: UNAVAILABLE }, 500);
   }
 });

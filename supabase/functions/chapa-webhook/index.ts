@@ -78,6 +78,13 @@ Deno.serve(async (req: Request) => {
     // 4. Mark paid exactly once (only status=false rows flip; a trigger decrements stock)
     const { data: paidRows, error: markErr } = await admin.rpc("chapa_mark_paid", { p_tex_ref: txRef });
     if (markErr) {
+      // CHECK (amount >= 0) on the slot: two customers paid for the last unit. Retrying can't fix it,
+      // so stop Chapa's retries and leave a log line for a manual refund.
+      // ponytail: no stock reservation at checkout; reserve in chapa_create_basket if this shows up often.
+      if (markErr.code === "23514") {
+        console.error(`[chapa-webhook] ERROR REFUND NEEDED: ${txRef} paid but out of stock, not dispensed`);
+        return json({ status: "out_of_stock" });
+      }
       console.error("[chapa-webhook] chapa_mark_paid failed:", markErr);
       return json({ code: "database_error" }, 500);
     }

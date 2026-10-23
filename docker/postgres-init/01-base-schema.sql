@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS public.vending_machine_to_items (
   id SERIAL PRIMARY KEY,
   machine_id UUID NOT NULL REFERENCES public.vending_machine(id) ON DELETE CASCADE,
   item_id INT NOT NULL REFERENCES public.vending_machine_items(id) ON DELETE CASCADE,
-  amount INT NOT NULL,
+  amount INT NOT NULL CONSTRAINT greater_than_zero CHECK (amount >= 0),
   motor_code TEXT NOT NULL DEFAULT 'motor1',
   capacity INT NOT NULL DEFAULT 10
 );
@@ -80,6 +80,8 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
+-- Polled by kiosk_payment_status and looked up by the Chapa webhook.
+CREATE INDEX IF NOT EXISTS tex_ref ON public.transactions USING hash (tex_ref);
 
 -- User phone numbers
 CREATE TABLE IF NOT EXISTS public.user_phone_numbers (

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "verify-checkout": {
+      "source": "negusnati/verify-checkout",
+      "sourceType": "github",
+      "skillPath": "skills/verify-checkout/SKILL.md",
+      "computedHash": "52e5450a8b2cacf26b715c99b66944562dd79929d4bcb1d9546a3c70f53fc945"
+    }
+  }
+}
